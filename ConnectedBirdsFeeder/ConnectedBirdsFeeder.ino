@@ -9,7 +9,7 @@
 #include "GazSensor.h"
 #include "WifiConfiguration.h"
 
-#define MOCK true // true : allows you to simulate the recovery of measurements without sensors
+#define MOCK false // true : allows you to simulate the recovery of measurements without sensors
 
 TemperatureHumiditySensor temperatureHumiditySensor;
 GazSensor gazSensor;
