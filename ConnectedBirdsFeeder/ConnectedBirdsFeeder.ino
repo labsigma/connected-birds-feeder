@@ -1,24 +1,23 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
-#include <ArduinoJson.h>
-#include <HTTPClient.h>
-#include <array>
 
 #include "SensorsConfiguration.h"
 #include "TemperatureHumiditySensor.h"
 #include "GazSensor.h"
 #include "WifiConfiguration.h"
 
-#define MOCK false // true : allows you to simulate the recovery of measurements without sensors
+#include <InfluxDbClient.h>
 
 TemperatureHumiditySensor temperatureHumiditySensor;
 GazSensor gazSensor;
+
+InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN);
+Point sensor("airSensors");
 
 WiFiMulti wifiMulti;
 float start;
 
 struct Statement {
-  int idFeeder;
   float temperature;
   float humidity;
   float co2;
@@ -30,6 +29,8 @@ void setup() {
 
   initializeWifi();
   temperatureHumiditySensor.initialize();
+
+  initializeClientInfluxDb();
 
   Serial.println("End of setup");
   start = 0;
@@ -70,15 +71,28 @@ void initializeWifi() {
   }
 }
 
+void initializeClientInfluxDb() {
+
+  sensor.addTag("sensor_id", "IDFEEDER_" + String(ID_FEEDER));
+
+  // Check server connection
+  if (client.validateConnection()) {
+    Serial.print("Connected to InfluxDB: ");
+    Serial.println(client.getServerUrl());
+  } else {
+    Serial.print("InfluxDB connection failed: ");
+    Serial.println(client.getLastErrorMessage());
+  }
+}
+
 Statement retreiveMeasurements() {
   Serial.println(F("Retrieval of measurements"));
   Statement statement;
-  statement.idFeeder = ID_FEEDER;
 
   #if MOCK
-    statement.humidity = 46.3;
-    statement.temperature = 25.9;  
-    statement.co2 = 123;
+    statement.humidity = 64.6;
+    statement.temperature = 19.6;  
+    statement.co2 = 45;
   #else
     Serial.println(F("Temperature and humidity recovery"));
     if (temperatureHumiditySensor.isInitialized()) {
@@ -112,37 +126,21 @@ Statement retreiveMeasurements() {
 
 void sendStatement(Statement statement) {
   Serial.println(F("Sending of the statement"));
-  HTTPClient http;   
-  http.setTimeout(30000);
 
-  http.begin(URL_ENPOINT);  
-  http.addHeader("Content-Type", "application/json");   
+  // Store measured value into point
+  sensor.clearFields();
+  sensor.addField("temperature", statement.temperature);
+  sensor.addField("humidity", statement.humidity);
+  sensor.addField("co", statement.co2);
 
-  StaticJsonDocument<200> doc;
-
-  doc["idFeeder"] = statement.idFeeder;
-  doc["temperature"] = statement.temperature;
-  doc["humidity"] = statement.humidity;
-  doc["co2"] = statement.co2;
-
-  String requestBody;
-  serializeJson(doc, requestBody);
-  
-  Serial.println(requestBody);
-     
-  int httpResponseCode = http.POST(requestBody);
- 
-  if(httpResponseCode > 0){
-    String response = http.getString();                       
-    Serial.println(response);
-    Serial.println(httpResponseCode);   
+  // Print what are we exactly writing
+  Serial.print("Writing: ");
+  Serial.println(client.pointToLineProtocol(sensor));
+  // Write point
+  if (!client.writePoint(sensor)) {
+    Serial.print("InfluxDB write failed: ");
+    Serial.println(client.getLastErrorMessage());
   }
-  else {
-    Serial.printf("Error sending statement : %s\n", http.errorToString(httpResponseCode).c_str());
-  }
-  Serial.println("");
-
-  http.end();
   
 }
 
