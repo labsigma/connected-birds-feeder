@@ -109,6 +109,14 @@ def verify_password(username: str, password: str):
         return username
 
 
+def extract_base64_string(image_data):
+    # Split the image data into the prefix and base64 string
+    prefix, base64_string = image_data.split(",")
+
+    # Return the base64 string without the prefix
+    return base64_string
+
+
 @application.route('/api/pictures', methods=['POST'])
 @auth.login_required
 def analyse_image():
@@ -124,8 +132,10 @@ def analyse_image():
     upload_directory = './uploads/' + str(id_feeder)
     os.makedirs(upload_directory, exist_ok=True)
 
+    extracted_base64_string = extract_base64_string(json_body.get('picture'))
+
     with open(upload_directory + '/' + file_name, 'wb') as fh:
-        fh.write(base64.urlsafe_b64decode(json_body.get('picture')))
+        fh.write(base64.urlsafe_b64decode(extracted_base64_string))
 
     prediction = classify_bird(upload_directory + '/' + file_name)
     print(prediction)
@@ -136,12 +146,13 @@ def analyse_image():
         bird_name = prediction[0][0]
         percent_prediction = prediction[0][1]
 
-    send_to_influxdb(
-        id_feeder=id_feeder,
-        file_name=file_name,
-        bird_name=bird_name,
-        percent_prediction=percent_prediction
-    )
+    if id_feeder is not None:
+        send_to_influxdb(
+            id_feeder=id_feeder,
+            file_name=file_name,
+            bird_name=bird_name,
+            percent_prediction=percent_prediction
+        )
 
     return json.dumps(prediction)
 

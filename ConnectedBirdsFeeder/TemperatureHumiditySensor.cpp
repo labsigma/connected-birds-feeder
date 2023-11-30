@@ -1,6 +1,6 @@
 #include "TemperatureHumiditySensor.h"
 
-#include "SensorsConfiguration.h"
+#include "FeederConfiguration.h"
 
 #include <iostream>  
 #include <exception>
@@ -16,12 +16,12 @@ TemperatureHumiditySensor::TemperatureHumiditySensor(uint8_t pin, uint8_t type) 
 
 void TemperatureHumiditySensor::initialize() {
   try {
-    Serial.println(F("Temperature and humidity sensor initialization"));
+    Serial.println("Temperature and humidity sensor initialization");
     begin();
     _isInitialized = true;
   }
   catch(std::exception& e) {
-    Serial.println(F(e.what()));
+    Serial.println(e.what());
   }
 }
 

@@ -1,12 +1,17 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
-#include "SensorsConfiguration.h"
+#include "FeederConfiguration.h"
 #include "TemperatureHumiditySensor.h"
 #include "GazSensor.h"
 #include "WifiConfiguration.h"
+#include "FeederCamera.h"
 
 #include <InfluxDbClient.h>
+
+#define uS_TO_S_FACTOR 1000000
 
 TemperatureHumiditySensor temperatureHumiditySensor;
 GazSensor gazSensor;
@@ -15,7 +20,7 @@ InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKE
 Point sensor("airSensors");
 
 WiFiMulti wifiMulti;
-float start;
+FeederCamera feederCamera;
 
 struct Statement {
   float temperature;
@@ -24,38 +29,58 @@ struct Statement {
 };
 
 void setup() {
+  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
   Serial.begin(115200);
   Serial.println("Start of setup");
 
-  initializeWifi();
+  bool wifiConnecte = initializeWifi();
   temperatureHumiditySensor.initialize();
 
   initializeClientInfluxDb();
 
+  feederCamera.initializeCamera();
+
   Serial.println("End of setup");
-  start = 0;
+  
+  esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) { // Something detected by the camera
+      Serial.println("Wakeup caused by external signal using RTC_IO"); 
+      if (feederCamera.isCameraInitialized()) {
+        String image = feederCamera.takePicture();
+        if ((image != "") && wifiConnecte){
+          feederCamera.sendPicture(image); 
+        }
+      }
+  }
+  else if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) { // Retreive and send measurements periodically
+      Serial.println("Wakeup caused by timer");
+      Statement statement = retreiveMeasurements();
+      if (wifiConnecte) {
+        sendStatement(statement);
+      }
+  }
+
+  esp_sleep_enable_ext0_wakeup(PIR_PIN, 0);
+  esp_sleep_enable_timer_wakeup(MEASUREMENT_INTERVAL * uS_TO_S_FACTOR);
+  Serial.println("Setup ESP32 to sleep for every " + String(MEASUREMENT_INTERVAL) +
+  " Seconds");
+
+  Serial.println("Going to sleep now");
+  Serial.flush(); 
+  esp_deep_sleep_start();
+  Serial.println("This will never be printed");
+  
 }
 
 void loop() {
-
-  bool wifiConnecte = true; 
-  if(wifiMulti.run() != WL_CONNECTED) {
-    wifiConnecte = false;
-    Serial.println("WiFi not connected !");
-  }
-  
-  if ((start == 0) || (start + MEASUREMENT_INTERVAL < millis())) {
-    start = millis();
-    Statement statement = retreiveMeasurements();
-    if (wifiConnecte) {
-      sendStatement(statement);
-    }
-  }
-
+  // Nothing is execute in the loop function because of the deep sleep mode
+  Serial.println("Normally never printed !!!");
 }
 
-void initializeWifi() {
-  Serial.println(F("WiFi initialization"));
+bool initializeWifi() {
+  Serial.println("WiFi initialization");
+  bool wifiConnecte = false; 
 
   for (int i; i < NB_WIFI_ENDPOINTS; i++) {
     wifiMulti.addAP(wifi_endpoints[i].ssid, wifi_endpoints[i].cle);
@@ -68,7 +93,11 @@ void initializeWifi() {
       Serial.println("IP address: ");
       Serial.println(WiFi.localIP());
       Serial.println("");
+      wifiConnecte = true;
   }
+
+  
+  return wifiConnecte;
 }
 
 void initializeClientInfluxDb() {
@@ -86,46 +115,39 @@ void initializeClientInfluxDb() {
 }
 
 Statement retreiveMeasurements() {
-  Serial.println(F("Retrieval of measurements"));
+  Serial.println("Retrieval of measurements");
   Statement statement;
 
-  #if MOCK
-    statement.humidity = 64.6;
-    statement.temperature = 19.6;  
-    statement.co2 = 45;
-  #else
-    Serial.println(F("Temperature and humidity recovery"));
-    if (temperatureHumiditySensor.isInitialized()) {
-      statement.humidity = temperatureHumiditySensor.retreiveHumidity();
-      statement.temperature = temperatureHumiditySensor.retreiveTemperature();  
-    }
+  Serial.println("Temperature and humidity recovery");
+  if (temperatureHumiditySensor.isInitialized()) {
+    statement.humidity = temperatureHumiditySensor.retreiveHumidity();
+    statement.temperature = temperatureHumiditySensor.retreiveTemperature();  
+  }
 
-    // We test that the datas retrieved are corrects
-    if (isnan(statement.humidity) || isnan(statement.temperature) ) {
-      Serial.println(F("Unable to recover from temperature and humidity sensor !"));
-    }
-    else {
-      Serial.print("Humidity: ");
-      Serial.println(statement.humidity);
-      Serial.print("Temperature: ");
-      Serial.print(statement.temperature);
-      Serial.println("°C ");
-    }
+  // We test that the datas retrieved are corrects
+  if (isnan(statement.humidity) || isnan(statement.temperature) ) {
+    Serial.println("Unable to recover from temperature and humidity sensor !");
+  }
+  else {
+    Serial.print("Humidity: ");
+    Serial.println(statement.humidity);
+    Serial.print("Temperature: ");
+    Serial.print(statement.temperature);
+    Serial.println("°C ");
+  }
 
-    Serial.println(F("CO2 concentration recovery"));
-    statement.co2 = gazSensor.retreiveCO2Concentration(statement.temperature, statement.humidity);
+  Serial.println("CO2 concentration recovery");
+  statement.co2 = gazSensor.retreiveCO2Concentration(statement.temperature, statement.humidity);
 
-    Serial.print("CO2 Concentration : ");
-    Serial.print(statement.co2);
-    Serial.println(" ppm");
-
-  #endif
+  Serial.print("CO2 Concentration : ");
+  Serial.print(statement.co2);
+  Serial.println(" ppm");
 
   return statement;
 }
 
 void sendStatement(Statement statement) {
-  Serial.println(F("Sending of the statement"));
+  Serial.println("Sending of the statement");
 
   // Store measured value into point
   sensor.clearFields();
@@ -143,5 +165,7 @@ void sendStatement(Statement statement) {
   }
   
 }
+
+
 
 

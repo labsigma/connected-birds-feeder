@@ -1,6 +1,6 @@
 #include "GazSensor.h"
 
-#include "SensorsConfiguration.h"
+#include "FeederConfiguration.h"
 
 GazSensor::GazSensor() : MQ135(MQ135_PIN) {};
 
