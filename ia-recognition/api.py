@@ -126,7 +126,7 @@ def analyse_image():
     now = datetime.now()  # current date and time
 
     id_feeder = json_body.get('idFeeder')
-    file_name = "IDFEEDER_" + str(id_feeder) + "_ " + now.strftime("%Y%m%d-%H%M%S") + ".jpg"
+    file_name = "IDFEEDER_" + str(id_feeder) + "_" + now.strftime("%Y%m%d-%H%M%S") + ".jpg"
 
     # Make sure the upload directoy is created
     upload_directory = './uploads/' + str(id_feeder)

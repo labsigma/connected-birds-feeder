@@ -1,0 +1,37 @@
+server:
+  port: 8099
+
+influxDb:
+  url: ${INFLUXDB_URL:}
+  organisation: ${INFLUXDB_ORG:}
+  bucket: ${INFLUXDB_BUCKET:}
+  token: ${INFLUXDB_TOKEN:}
+
+configuration:
+  updloadDirectory: ${UPLOAD_DIRECTORY:}
+  feeders:
+    - id: 1
+      description: SIGMA 1
+      longitude: -1.5475603876151947
+      latitude: 47.26223749857589
+    - id: 2
+      description: SIGMA 2
+      longitude: -1.5495550380939818
+      latitude: 47.261196546311645
+    - id: 5
+      description: SIGMA 5
+      longitude: -1.5489435248326335
+      latitude: 47.26110918589313
+    - id: 6
+      description: SIGMA 6
+      longitude: -1.5485089860108083
+      latitude: 47.26050118894641
+    - id: 8
+      description: SIGMA 8
+      longitude: -1.548278333852735
+      latitude: 47.26142955110821
+    - id: 10
+      description: PATIO
+      longitude: -1.550295714923951
+      latitude: 47.26166951016867
+
