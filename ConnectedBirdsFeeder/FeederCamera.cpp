@@ -89,23 +89,6 @@ bool FeederCamera::isCameraInitialized() {
   return _isCameraInitialized;
 }
 
-String urlencode(String str) {
-  const char *msg = str.c_str();
-  const char *hex = "0123456789ABCDEF";
-  String encodedMsg = "";
-  while (*msg != '\0') {
-    if (('a' <= *msg && *msg <= 'z') || ('A' <= *msg && *msg <= 'Z') || ('0' <= *msg && *msg <= '9') || *msg == '-' || *msg == '_' || *msg == '.' || *msg == '~') {
-      encodedMsg += *msg;
-    } else {
-      encodedMsg += '%';
-      encodedMsg += hex[(unsigned char)*msg >> 4];
-      encodedMsg += hex[*msg & 0xf];
-    }
-    msg++;
-  }
-  return encodedMsg;
-}
-
 String FeederCamera::takePicture() {
   Serial.println("Take picture when bird detected");
 

@@ -1,0 +1,70 @@
+/* You can add global styles to this file, and also import other style files */
+@import "bootstrap/scss/bootstrap.scss";
+@import "leaflet/dist/leaflet.css";
+
+.viewport {
+  height: 96vh;
+  overflow: hidden;
+  width: 100vw;
+}
+
+.feeders {
+  overflow-y: auto;
+  height: 100%;
+}
+
+.bird {
+  margin-top: 10px;
+  cursor: pointer;
+  position: absolute;
+}
+
+.feeder {
+  width: 200px;
+  height: 200px;
+  margin:  0 auto;
+  position: relative;
+  border: 1px solid #333;
+  border-radius: 20px;
+  padding: 0.5rem;
+
+  .description {
+    text-align: center;
+    color: darkgreen;
+    border-bottom: 1px solid darkgreen;
+    font-weight: 600;
+  }
+
+  .sensor {
+    align-self: center;
+
+    .temperature {
+      color: green;
+    }
+
+    .humidity {
+      color: orange;
+    }
+
+    .co {
+      color: dimgrey;
+    }
+  }
+}
+
+.gallery {
+  display: flex;
+  justify-content: flex-start;
+
+  .bird-file {
+    margin: 0.5rem;
+    width: 200px;
+
+    .bird-name {
+      text-align: center;
+    }
+  }
+}
+
+
+
