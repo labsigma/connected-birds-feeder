@@ -14,8 +14,6 @@ public class BirdFile {
 
     private Instant time;
 
-    private String updloadDirectory;
-
     @Column(name = "file")
     private String fileName;
 
@@ -24,4 +22,6 @@ public class BirdFile {
 
     @Column(name = "percent_prediction")
     private String percentPrediction;
+
+    private String idFeeder;
 }

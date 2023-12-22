@@ -1,4 +1,4 @@
 <div *ngIf="birdFile" class="bird-file">
-  <img src="{{birdFile.updloadDirectory + birdFile.fileName}}" alt="{{birdFile.birdName}}" width="200px" title="{{birdFile.birdName}} - {{birdFile.percentPrediction}}">
+  <img src="{{birdFile.src}}" alt="{{birdFile.birdName}}" width="200" height="auto" title="{{birdFile.birdName}} - {{birdFile.percentPrediction}}">
   <div class="bird-name">{{birdFile.birdName}}</div>
 </div>

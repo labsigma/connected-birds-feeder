@@ -8,15 +8,6 @@ import {SensorMeasurement} from '../interfaces/sensor-measurement';
   providedIn: 'root'
 })
 export class FeederService {
-  get feedder(): Feeder {
-    return <Feeder>this._feedder;
-  }
-
-  set feedder(value: Feeder) {
-    this._feedder = value;
-  }
-
-  private _feedder: Feeder | undefined;
   constructor(private httpClient: HttpClient) {}
 
   public retreiveFeeders(): Observable<Feeder[]> {

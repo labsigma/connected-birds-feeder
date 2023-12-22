@@ -3,12 +3,13 @@
 @import "leaflet/dist/leaflet.css";
 
 .viewport {
-  height: 96vh;
+  height: 100vh;
   overflow: hidden;
   width: 100vw;
 }
 
 .feeders {
+  background-color: #F0F0F7;
   overflow-y: auto;
   height: 100%;
 }
@@ -25,8 +26,10 @@
   margin:  0 auto;
   position: relative;
   border: 1px solid #333;
-  border-radius: 20px;
   padding: 0.5rem;
+  background-color:white;
+  border-radius: 10px;
+  box-shadow: 2px 2px 2px grey;
 
   .description {
     text-align: center;
@@ -52,17 +55,15 @@
   }
 }
 
-.gallery {
-  display: flex;
-  justify-content: flex-start;
+.bird-file {
+  margin: 0.5rem;
+  width: 200px;
+  border: 1px solid #ccc;
+  float: left;
 
-  .bird-file {
-    margin: 0.5rem;
-    width: 200px;
-
-    .bird-name {
-      text-align: center;
-    }
+  .bird-name {
+    padding: 15px;
+    text-align: center;
   }
 }
 

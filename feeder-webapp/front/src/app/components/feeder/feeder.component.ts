@@ -1,7 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Feeder} from '../../interfaces/feeder';
 import {FeederService} from '../../services/feeder.service';
-import {SensorMeasurement} from '../../interfaces/sensor-measurement';
 import {Router} from '@angular/router';
 
 @Component({
@@ -34,7 +33,7 @@ export class FeederComponent implements OnInit {
   }
 
   gotoGallery(feeder: Feeder): void {
-    this.feederService.feedder = feeder;
-    this.router.navigate(['/gallery']);
+    localStorage.setItem('feeder', JSON.stringify(feeder));
+    this.router.navigate(['/gallery']).then();
   }
 }

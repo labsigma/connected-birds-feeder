@@ -14,6 +14,6 @@ import java.util.List;
 @Getter
 @Setter
 public class ConfigurationProperties {
-    private String updloadDirectory;
+    private String uploadDirectory;
     private List<Feeder> feeders;
 }

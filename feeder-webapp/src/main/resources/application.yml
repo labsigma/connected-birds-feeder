@@ -8,7 +8,7 @@ influxDb:
   token: ${INFLUXDB_TOKEN:}
 
 configuration:
-  updloadDirectory: ${UPLOAD_DIRECTORY:}
+  uploadDirectory: ${UPLOAD_DIRECTORY:}
   feeders:
     - id: 1
       description: SIGMA 1

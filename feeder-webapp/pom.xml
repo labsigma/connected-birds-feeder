@@ -19,6 +19,7 @@
 		<node.version>v18.18.0</node.version>
 		<yarn.version>v1.22.19</yarn.version>
 		<influxdb-client-java.version>6.10.0</influxdb-client-java.version>
+		<commons-io.version>2.15.1</commons-io.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -45,7 +46,11 @@
 			<artifactId>influxdb-client-java</artifactId>
 			<version>${influxdb-client-java.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,4 +1,4 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {Component, Input, OnChanges} from '@angular/core';
 import * as Leaflet from 'leaflet';
 import {Feeder} from '../../interfaces/feeder';
 import {BehaviorSubject} from 'rxjs';
@@ -24,7 +24,7 @@ export class MapComponent implements OnChanges {
     zoom: 0
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(): void {
     this.mapLoaded.subscribe((loaded: boolean) => {
       if (loaded) {
         this.initMarkers();

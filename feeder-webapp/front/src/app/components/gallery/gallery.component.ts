@@ -1,6 +1,5 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Feeder} from '../../interfaces/feeder';
-import {FeederService} from '../../services/feeder.service';
 
 @Component({
   selector: 'app-galery',
@@ -10,11 +9,13 @@ import {FeederService} from '../../services/feeder.service';
 export class GalleryComponent implements OnInit {
   feeder: Feeder | undefined;
 
-  constructor(private feederService: FeederService) {
+  constructor() {
   }
   ngOnInit(): void {
-    this.feeder = this.feederService.feedder;
+    const feeder = localStorage.getItem('feeder');
+    if (feeder) {
+      this.feeder = JSON.parse(feeder);
+    }
   }
-
 
 }

@@ -21,19 +21,22 @@ export class FeedersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loaderService.show();
-    this.feederService.retreiveFeeders().subscribe((feeders: Feeder[]) => {
-      try {
-        this.feeders = feeders;
-        this.feedersRetrieved = true;
-      }
-      finally {
+    this.feederService.retreiveFeeders().subscribe({
+      next: (feeders: Feeder[]) => {
+        try {
+          this.feeders = feeders;
+          this.feedersRetrieved = true;
+        }
+        finally {
+          this.loaderService.hide();
+        }
+      },
+      error: (err) => {
+        console.error(err);
         this.loaderService.hide();
       }
-    },
-      (err) => {
-        console.error(err); // TODO afficher un message d'erreur
-        this.loaderService.hide();
-      });
+    });
+
   }
 
 

@@ -1,9 +1,9 @@
 package com.labsigma.feederwebapp.services;
 
-import com.influxdb.client.*;
-import com.influxdb.client.domain.WritePrecision;
-import com.influxdb.query.FluxRecord;
-import com.influxdb.query.FluxTable;
+import com.influxdb.client.InfluxDBClient;
+import com.influxdb.client.InfluxDBClientFactory;
+import com.influxdb.client.InfluxDBClientOptions;
+import com.influxdb.client.QueryApi;
 import com.labsigma.feederwebapp.entities.BirdFile;
 import com.labsigma.feederwebapp.entities.Feeder;
 import com.labsigma.feederwebapp.entities.SensorMeasurement;
@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,12 +19,12 @@ import java.util.List;
 public class FeederService {
     private final ConfigurationProperties configurationProperties;
 
-    private static String PREFIXE_ID = "IDFEEDER_";
-    private static String MEASUREMENT_AIRSENSORS = "airSensors";
-    private static String MEASUREMENT_FEEDERS = "feeders";
-    private static String START_AIRSENSORS = "-1d";
-    private static String START_FEEDERS = "0";
-    private static String SEPARATOR_QUERY = " |> ";
+    private final static String PREFIXE_ID = "IDFEEDER_";
+    private final static String MEASUREMENT_AIRSENSORS = "airSensors";
+    private final static String MEASUREMENT_FEEDERS = "feeders";
+    private final static String START_AIRSENSORS = "-1d";
+    private final static String START_FEEDERS = "0";
+    private final static String SEPARATOR_QUERY = " |> ";
 
     @Value("${influxDb.url}")
     String influxDbUrl;
@@ -71,11 +70,8 @@ public class FeederService {
         feeders.forEach(feeder -> {
             List<BirdFile> birdFiles = queryApi.query(generateQuery(influxDbBucket, MEASUREMENT_FEEDERS, START_FEEDERS, feeder.getId()), BirdFile.class);
             List<SensorMeasurement> sensorMeasurements = queryApi.query(generateQuery(influxDbBucket, MEASUREMENT_AIRSENSORS, START_AIRSENSORS, feeder.getId()), SensorMeasurement.class);
+            birdFiles.forEach(birdFile -> birdFile.setIdFeeder(feeder.getId()));
             feeder.setBirdFiles(birdFiles);
-            // update updload directory for each bird file
-            feeder.getBirdFiles().forEach(birdFile -> {
-                birdFile.setUpdloadDirectory(configurationProperties.getUpdloadDirectory() + "/" + feeder.getId() + "/");
-            });
             feeder.setSensorMeasurements(sensorMeasurements);
         });
 

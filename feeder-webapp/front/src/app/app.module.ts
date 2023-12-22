@@ -13,6 +13,7 @@ import {HttpClientModule} from '@angular/common/http';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { MapComponent } from './components/map/map.component';
 import {LeafletModule} from '@asymmetrik/ngx-leaflet';
+import {NgOptimizedImage} from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -24,14 +25,15 @@ import {LeafletModule} from '@asymmetrik/ngx-leaflet';
     LoaderComponent,
     MapComponent
   ],
-  imports: [
-    BrowserAnimationsModule,
-    BrowserModule,
-    AppRoutingModule,
-    NgxSpinnerModule,
-    HttpClientModule,
-    LeafletModule
-  ],
+    imports: [
+        BrowserAnimationsModule,
+        BrowserModule,
+        AppRoutingModule,
+        NgxSpinnerModule,
+        HttpClientModule,
+        LeafletModule,
+        NgOptimizedImage
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })

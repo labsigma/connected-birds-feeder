@@ -1,7 +1,8 @@
 export interface BirdFile {
+  idFeeder: string;
   time: Date;
-  updloadDirectory: string;
   fileName: string;
   birdName: string;
   percentPrediction: string;
+  src: string;
 }
