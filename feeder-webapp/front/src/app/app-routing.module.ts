@@ -2,11 +2,19 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import {FeedersComponent} from './components/feeders/feeders.component';
 import {GalleryComponent} from './components/gallery/gallery.component';
+import {CustomTitleResolver} from './custom-title.resolver';
 
 const routes: Routes = [
   {path: '', redirectTo:'/feeders', pathMatch: 'full' },
-  {path: 'feeders', component: FeedersComponent, title: 'Connected bird feeders'},
-  {path: 'gallery', component: GalleryComponent, title: 'Gallery of birds'}
+  {
+    path: 'feeders',
+    component: FeedersComponent,
+    title: CustomTitleResolver,
+    data: {
+      titleKey: 'titre.page-principal'
+    }
+  },
+  {path: 'gallery', component: GalleryComponent}
 ];
 
 @NgModule({

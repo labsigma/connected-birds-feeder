@@ -1,0 +1,1 @@
+CREATE TABLE FEEDER (id bigint NOT NULL, description text NOT NULL, longitude numeric, latitude numeric);

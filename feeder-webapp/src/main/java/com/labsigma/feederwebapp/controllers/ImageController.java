@@ -3,11 +3,11 @@ package com.labsigma.feederwebapp.controllers;
 import com.labsigma.feederwebapp.entities.Image;
 import com.labsigma.feederwebapp.services.ImageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.awt.*;
 import java.io.IOException;
 
 @RestController

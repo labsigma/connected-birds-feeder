@@ -11,8 +11,12 @@ export class LoaderService {
   public show(): void {
     this.spinnerService.show('app-loader', {type: 'ball-spin-clockwise'}).then();
   }
-
   public hide(): void {
     this.spinnerService.hide('app-loader').then();
   }
+
+  public showValidation(): void {
+    this.spinnerService.show('app-loader', { type: 'ball-triangle-path'}).then();
+  }
+
 }

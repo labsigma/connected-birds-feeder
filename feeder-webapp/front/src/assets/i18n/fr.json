@@ -1,0 +1,16 @@
+{
+  "titre.page-principal": "Le Lab SIGMA - Mangeoires connectées",
+  "titre.gallerie": "Le Lab SIGMA - Gallerie des oiseaux",
+  "feeder-entry.titre": "Saisie des informations de la mangeoire",
+  "label.id-feeder": "Identifiant de la mangeoire",
+  "bouton.valider": "VALIDER",
+  "label.description": "Description",
+  "champ-obligatoire": "Champ obligatoire",
+  "confirmation.non": "Non",
+  "confirmation.oui": "Oui",
+  "confirmation.titre": "Confirmation",
+  "confirmation.suppression": "Confirmez-vous la suppression de la mangeoire ?",
+  "erreur.creation-mangeoire": "Erreur lors de la création de la mangeoire",
+  "erreur.mise-a-jour-mangeoire": "Erreur lors de la mise à jour de la mangeoire",
+  "erreur.suppression-mangeoire": "Erreur lors de la suppression de la mangeoire"
+}

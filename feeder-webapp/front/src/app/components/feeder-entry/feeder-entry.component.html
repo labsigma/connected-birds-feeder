@@ -1,0 +1,52 @@
+<div class="modal-header">
+  <h5 class="modal-title" >{{'feeder-entry.titre' | translate}}</h5>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="close()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<form  #form="ngForm" (submit)="validate(form)">
+  <div class="modal-body" *ngIf="feeder">
+    <div class="row">
+      <div class="col-12">
+        <div class="form-group">
+          <label for="idFeeder" class="obligatoire">{{'label.id-feeder' | translate}}</label>
+          <input
+            #inputId="ngModel"
+            name="idFeeder"
+            type="number"
+            id="idFeeder"
+            [(ngModel)]="feeder.id"
+            class="form-control"
+            required
+            [readOnly]="!creation"
+          />
+        </div>
+      </div>
+      <p class="text-danger ml-3"
+         *ngIf="inputId.touched && inputId.getError('required')" translate>
+        champ-obligatoire</p>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <div class="form-group">
+          <label for="description" class="obligatoire">{{'label.description' | translate}}</label>
+          <input
+            #inputDescription="ngModel"
+            name="description"
+            type="text"
+            id="description"
+            [(ngModel)]="feeder.description"
+            class="form-control"
+            required
+          />
+        </div>
+      </div>
+      <p class="text-danger ml-3"
+         *ngIf="inputDescription.touched && inputDescription.getError('required')" translate>
+        champ-obligatoire</p>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-primary" translate >bouton.valider<i class="fas fa-check green ml-2"></i></button>
+  </div>
+</form>

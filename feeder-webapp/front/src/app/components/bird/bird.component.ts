@@ -16,7 +16,16 @@ export class BirdComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.birdFile) {
-      this.imageService.getImage(this.birdFile.idFeeder, this.birdFile.fileName).subscribe((image: Image) => this.birdFile.src = image.src);
+      this.imageService.getImage(this.birdFile.idFeeder, this.birdFile.fileName).subscribe(
+        (image: Image) => {
+          let src = image.src;
+          if (!src) {
+            src = 'assets/img/no-image.png';
+          }
+          this.birdFile.src = src;
+
+        }
+      );
     }
   }
 }

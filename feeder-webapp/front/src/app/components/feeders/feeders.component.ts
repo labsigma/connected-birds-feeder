@@ -2,6 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {FeederService} from '../../services/feeder.service';
 import {Feeder} from '../../interfaces/feeder';
 import {LoaderService} from '../../services/loader.service';
+import {Title} from '@angular/platform-browser';
+import {TranslateService} from '@ngx-translate/core';
 
 @Component({
   selector: 'app-feeders',
@@ -21,10 +23,10 @@ export class FeedersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loaderService.show();
-    this.feederService.retreiveFeeders().subscribe({
+    this.feederService.retrieveFeeders().subscribe({
       next: (feeders: Feeder[]) => {
         try {
-          this.feeders = feeders;
+          this.feeders = feeders.sort(this.feederService.sortFeeders);
           this.feedersRetrieved = true;
         }
         finally {
@@ -37,8 +39,15 @@ export class FeedersComponent implements OnInit {
       }
     });
 
+    this.feederService.feederDeleted.subscribe((feeder: Feeder) => {
+      if (feeder) {
+        const index = this.feeders.findIndex((f: Feeder) => f.id === feeder.id);
+        if (index !== -1) {
+          this.feeders.splice(index,1);
+        }
+      }
+    });
+
   }
-
-
 
 }

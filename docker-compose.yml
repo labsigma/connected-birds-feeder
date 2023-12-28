@@ -49,8 +49,22 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: ${PASSWORD}
       GF_SECURITY_TOKEN: ${INFLUXDB_TOKEN}
       GF_SECURITY_BUCKET: ${INFLUXDB_BUCKET}
+      
+  db:
+    build: ./db
+    restart: unless-stopped
+    container_name: db
+    environment:
+      POSTGRES_DB: birdy
+      POSTGRES_USER: ${USERNAME}
+      POSTGRES_PASSWORD: ${PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - "pgdata:/var/lib/postgresql/data"      
         
 volumes:
   ia-recognition:
   influxdb-birds:
   grafana-birds:
+  pgdata:

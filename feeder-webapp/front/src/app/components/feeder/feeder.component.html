@@ -1,13 +1,23 @@
 <div class="feeder">
-  <div class="description">{{feeder.description}}</div>
+  <div class="description row">
+    <div class="col-9">
+      {{feeder.description}}
+    </div>
+    <div class="col-3">
+      <div class="row buttons">
+        <i class="far fa-edit" (click)="edit(feeder)"></i>
+        <i class="far fa-trash-alt" (click)="delete(feeder)"></i>
+      </div>
+    </div>
+  </div>
   <div class="row">
-    <div class="col-6"><img ngSrc="assets/img/feeder.jfif" alt="" width="90" height="140" /></div>
+    <div class="col-6"><img src="assets/img/feeder.jfif" alt="" width="90" height="140" /></div>
     <div class="col-6 sensor">
       <div class="temperature">{{lastTemperature | number: '1.0-2' }} °C</div>
       <div class="humidity">{{lastHumidity | number: '1.0-2' }} %</div>
       <div class="co">{{lastCo | number: '1.0-2' }} ppm</div>
       <div class="bird" *ngIf="feeder.birdFiles.length > 0">
-        <img ngSrc="assets/img/bird.png" alt="" width="60" (click)="gotoGallery(feeder)" height="45"/>
+        <img src="assets/img/bird.png" alt="" (click)="gotoGallery(feeder)" />
       </div>
     </div>
   </div>
