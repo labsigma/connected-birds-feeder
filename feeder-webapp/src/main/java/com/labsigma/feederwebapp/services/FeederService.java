@@ -2,10 +2,7 @@ package com.labsigma.feederwebapp.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.InfluxDBClientOptions;
-import com.influxdb.client.QueryApi;
+import com.influxdb.client.*;
 import com.labsigma.feederwebapp.entities.BirdFile;
 import com.labsigma.feederwebapp.entities.Feeder;
 import com.labsigma.feederwebapp.entities.SensorMeasurement;
@@ -15,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Service
@@ -23,6 +23,7 @@ import java.util.List;
 public class FeederService {
     private final FeederRepository feederRepository;
     private final ObjectMapper objectMapper;
+    private final ImageService imageService;
     private final static String PREFIX_ID = "IDFEEDER_";
     private final static String MEASUREMENT_SENSORS = "airSensors";
     private final static String MEASUREMENT_FEEDERS = "feeders";
@@ -58,14 +59,18 @@ public class FeederService {
                 filterId + SEPARATOR_QUERY + "pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")";
     }
 
-    private void retrieveFeederInformation(Feeder feeder) {
-        InfluxDBClient influxDBClient = InfluxDBClientFactory.create(
+    private InfluxDBClient getInfluxDBClient() {
+        return InfluxDBClientFactory.create(
                 InfluxDBClientOptions.builder()
                         .url(influxDbUrl)
                         .org(influxDbOrg)
                         .authenticateToken(influxDbToken.toCharArray())
                         .build()
         );
+    }
+
+    private void retrieveFeederInformation(Feeder feeder) {
+        InfluxDBClient influxDBClient = getInfluxDBClient();
         QueryApi queryApi = influxDBClient.getQueryApi();
 
         List<BirdFile> birdFiles = queryApi.query(generateQuery(influxDbBucket, MEASUREMENT_FEEDERS, START_FEEDERS, feeder.getId().toString()), BirdFile.class);
@@ -147,11 +152,25 @@ public class FeederService {
         return true;
     }
 
-    public Feeder getFeeder(Long idFeeder) {
-        Feeder feeder = feederRepository.findById(idFeeder).orElse(null);
+    public Feeder getFeeder(Long id) {
+        Feeder feeder = feederRepository.findById(id).orElse(null);
         if (feeder != null) {
             retrieveFeederInformation(feeder);
         }
         return feeder;
+    }
+
+    public Boolean deleteBirdFile(BirdFile birdFile) {
+        InfluxDBClient influxDBClient = getInfluxDBClient();
+        DeleteApi deleteApi = influxDBClient.getDeleteApi();
+
+        String predicate = "_measurement=\"" + MEASUREMENT_FEEDERS + "\" AND feeder_id=\"" + birdFile.getId() + "\"";
+        OffsetDateTime offsetDateTime = birdFile.getTime().atOffset(ZoneOffset.UTC);
+
+        deleteApi.delete(offsetDateTime, offsetDateTime, predicate, influxDbBucket, influxDbOrg);
+
+        influxDBClient.close();
+
+        return imageService.deleteImage(birdFile.getIdFeeder(), birdFile.getFileName());
     }
 }

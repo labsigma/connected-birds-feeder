@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {Feeder} from '../interfaces/feeder';
 import {SensorMeasurement} from '../interfaces/sensor-measurement';
+import {BirdFile} from '../interfaces/bird-file';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,7 @@ export class FeederService {
 
   public feederDeleted = new BehaviorSubject<any>(undefined);
   public feederUpdated = new BehaviorSubject<any>(undefined);
+  public birdFileDeleted = new BehaviorSubject<any>(undefined);
 
   public retrieveFeeders(): Observable<Feeder[]> {
     return this.httpClient.get<Feeder[]>('api/feeders');
@@ -60,6 +62,14 @@ export class FeederService {
 
   public feederWasUpdated(feeder: Feeder): void {
     this.feederUpdated.next(feeder);
+  }
+
+  public birdFileWasDeleted(birdFile: BirdFile): void {
+    this.birdFileDeleted.next(birdFile);
+  }
+
+  public deleteBirdFile(birdFile: BirdFile): Observable<boolean> {
+    return this.httpClient.post<boolean>('api/feeder/bird-file/delete', birdFile);
   }
 
 }

@@ -12,5 +12,6 @@
   "confirmation.suppression": "Do you confirm the removal of the feeder ?",
   "erreur.creation-mangeoire": "Error creating feeder",
   "erreur.mise-a-jour-mangeoire": "Error updating feeder",
-  "erreur.suppression-mangeoire": "Error removing feeder"
+  "erreur.suppression-mangeoire": "Error removing feeder",
+  "erreur.suppression-image": "Error removing image"
 }

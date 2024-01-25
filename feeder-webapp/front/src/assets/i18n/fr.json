@@ -12,5 +12,6 @@
   "confirmation.suppression": "Confirmez-vous la suppression de la mangeoire ?",
   "erreur.creation-mangeoire": "Erreur lors de la création de la mangeoire",
   "erreur.mise-a-jour-mangeoire": "Erreur lors de la mise à jour de la mangeoire",
-  "erreur.suppression-mangeoire": "Erreur lors de la suppression de la mangeoire"
+  "erreur.suppression-mangeoire": "Erreur lors de la suppression de la mangeoire",
+  "erreur.suppression-image": "Erreur lors de la suppression de l'image"
 }

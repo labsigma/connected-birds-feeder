@@ -1,6 +1,7 @@
 package com.labsigma.feederwebapp.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.labsigma.feederwebapp.entities.BirdFile;
 import com.labsigma.feederwebapp.entities.Feeder;
 import com.labsigma.feederwebapp.services.FeederService;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,12 @@ public class FeederController {
     }
 
     @GetMapping(value = "/feeder/{id}")
-    public Feeder getFeeder(@PathVariable Long idFeeder) {
-        return feederService.getFeeder(idFeeder);
+    public Feeder getFeeder(@PathVariable Long id) {
+        return feederService.getFeeder(id);
+    }
+
+    @PostMapping(value = "/feeder/bird-file/delete")
+    public Boolean deleteBirdFile(@RequestBody BirdFile birdFile) {
+        return feederService.deleteBirdFile(birdFile);
     }
 }

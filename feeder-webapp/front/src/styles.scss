@@ -13,6 +13,16 @@
   color: #FF7700;
 }
 
+.dark-green {
+  color: darkgreen;
+}
+
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden !important;
+  text-overflow: ellipsis;
+}
+
 .description {
   text-align: center;
   color: darkgreen;
@@ -31,6 +41,10 @@
   background-color: #F0F0F7;
   overflow-y: auto;
   height: 100%;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .bird {

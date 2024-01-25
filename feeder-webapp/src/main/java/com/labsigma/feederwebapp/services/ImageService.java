@@ -28,4 +28,14 @@ public class ImageService {
 
         return image;
     }
+
+    public Boolean deleteImage(String idFeeder, String imageName) {
+        String imagePath = configurationProperties.getUploadDirectory() + "/" + idFeeder + "/" + imageName;
+        File file = new File(imagePath);
+        if (file.exists()) {
+            return file.delete();
+        }
+
+        return true;
+    }
 }

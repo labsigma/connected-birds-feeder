@@ -56,7 +56,6 @@ export class MapComponent implements OnChanges, OnInit {
   }
 
   ngOnChanges(): void {
-    console.log('ngOnChanges');
     this.mapLoaded.subscribe((loaded: boolean) => {
       if (loaded) {
         this.initMarkers();
