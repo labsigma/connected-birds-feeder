@@ -17,7 +17,7 @@
       <div class="humidity">{{lastHumidity | number: '1.0-2' }} %</div>
       <div class="co">{{lastCo | number: '1.0-2' }} ppm</div>
       <div class="bird" *ngIf="feeder.birdFiles.length > 0">
-        <i class="fas fa-dove fa-2x dark-green" (click)="gotoGallery(feeder)"></i>
+        <i class="fas fa-dove fa-2x color-secondary" (click)="gotoGallery(feeder)"></i>
       </div>
     </div>
   </div>

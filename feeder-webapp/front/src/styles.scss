@@ -3,18 +3,26 @@
 @import "@fortawesome/fontawesome-free/css/all.css";
 @import "leaflet/dist/leaflet.css";
 
+$color-principal: #003a55;
+$color-secondary: #95c23b;
+
+body {
+  background-color: $color-principal;
+}
+
 .viewport {
   height: 100vh;
   overflow: hidden;
   width: 100vw;
+  margin-left: 0;
 }
 
 .orange {
   color: #FF7700;
 }
 
-.dark-green {
-  color: darkgreen;
+.color-secondary {
+  color: $color-secondary;
 }
 
 .text-ellipsis {
@@ -25,8 +33,8 @@
 
 .description {
   text-align: center;
-  color: darkgreen;
-  border-bottom: 1px solid darkgreen;
+  color: $color-secondary;
+  border-bottom: 1px solid $color-secondary;
   font-weight: 600;
   margin-left: 5px;
   margin-right: 5px;
@@ -38,10 +46,11 @@
 }
 
 .feeders {
-  background-color: #F0F0F7;
+  background-color: $color-principal;
   overflow-y: auto;
   height: 100%;
 }
+
 
 .cursor-pointer {
   cursor: pointer;
@@ -65,7 +74,7 @@
   height: 200px;
   margin:  0 auto;
   position: relative;
-  border: 1px solid #333;
+  border: 1px solid $color-secondary;
   padding: 0.5rem;
   background-color:white;
   border-radius: 10px;
@@ -91,7 +100,7 @@
 .bird-file {
   margin: 0.5rem;
   height: 200px;
-  border: 1px solid #ccc;
+  border: 1px solid $color-secondary;
   float: left;
 
   img {
@@ -103,6 +112,7 @@
     padding: 15px;
     text-align: center;
     font-size: 0.9em;
+    color: white;
   }
 }
 
