@@ -22,6 +22,7 @@ import {FormsModule} from '@angular/forms';
 import {TranslationModule} from './core/translation.module';
 import { ConfirmationComponent } from './components/confirmation/confirmation.component';
 import {ToastrModule} from 'ngx-toastr';
+import {providers} from './app.provider';
 
 @NgModule({
   declarations: [
@@ -54,7 +55,9 @@ import {ToastrModule} from 'ngx-toastr';
       }
     )
   ],
-  providers: [],
+  providers: [
+    providers
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

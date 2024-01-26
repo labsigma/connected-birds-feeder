@@ -1,6 +1,4 @@
 {
-  "titre.page-principal": "The SIGMA Lab - Connected feeders",
-  "titre.gallerie": "The SIGMA Lab - Bird's gallery",
   "feeder-entry.titre": "Entering feeder information",
   "label.id-feeder": "Feeder ID",
   "bouton.valider": "VALIDATE",
@@ -13,5 +11,6 @@
   "erreur.creation-mangeoire": "Error creating feeder",
   "erreur.mise-a-jour-mangeoire": "Error updating feeder",
   "erreur.suppression-mangeoire": "Error removing feeder",
-  "erreur.suppression-image": "Error removing image"
+  "erreur.suppression-image": "Error removing image",
+  "erreur.format-incorrect.entier": "Entering an integer of length 10 maximum required"
 }

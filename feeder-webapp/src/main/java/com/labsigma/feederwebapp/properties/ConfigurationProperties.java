@@ -12,4 +12,5 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class ConfigurationProperties {
     private String uploadDirectory;
+    private String title;
 }

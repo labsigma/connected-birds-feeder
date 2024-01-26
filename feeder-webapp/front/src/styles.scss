@@ -2,6 +2,7 @@
 @import "bootstrap/scss/bootstrap.scss";
 @import "@fortawesome/fontawesome-free/css/all.css";
 @import "leaflet/dist/leaflet.css";
+@import 'ngx-toastr/toastr-bs4-alert';
 
 $color-principal: #003a55;
 $color-secondary: #95c23b;

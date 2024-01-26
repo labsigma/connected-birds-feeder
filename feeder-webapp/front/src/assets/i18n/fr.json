@@ -1,6 +1,4 @@
 {
-  "titre.page-principal": "Le Lab SIGMA - Mangeoires connectées",
-  "titre.gallerie": "Le Lab SIGMA - Gallerie des oiseaux",
   "feeder-entry.titre": "Saisie des informations de la mangeoire",
   "label.id-feeder": "Identifiant de la mangeoire",
   "bouton.valider": "VALIDER",
@@ -13,5 +11,6 @@
   "erreur.creation-mangeoire": "Erreur lors de la création de la mangeoire",
   "erreur.mise-a-jour-mangeoire": "Erreur lors de la mise à jour de la mangeoire",
   "erreur.suppression-mangeoire": "Erreur lors de la suppression de la mangeoire",
-  "erreur.suppression-image": "Erreur lors de la suppression de l'image"
+  "erreur.suppression-image": "Erreur lors de la suppression de l'image",
+  "erreur.format-incorrect.id": "Saisie d'un entier de longueur 10 maximum requise"
 }

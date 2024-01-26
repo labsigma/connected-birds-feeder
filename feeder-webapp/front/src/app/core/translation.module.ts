@@ -2,6 +2,7 @@ import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate
 import {HttpClient} from '@angular/common/http';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
 import {NgModule} from '@angular/core';
+import {Title} from '@angular/platform-browser';
 
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -20,7 +21,9 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     ]
 })
 export class TranslationModule {
-    constructor(private  readonly  translateService: TranslateService) {
+    constructor(
+      private readonly translateService: TranslateService
+    ) {
         const lanIso = 'fr';
         this.translateService.use(lanIso);
         this.translateService.setDefaultLang(lanIso);

@@ -16,6 +16,9 @@ import {FeederEntryComponent} from '../feeder-entry/feeder-entry.component';
 export class MapComponent implements OnChanges, OnInit {
   @Input() feeders!: Feeder[];
 
+  DEFAULT_LATITUDE = 47.261479;
+  DEFAULT_LONGITUDE = -1.549479;
+
   constructor(
     private feederService: FeederService,
     private loaderService: LoaderService,
@@ -26,7 +29,7 @@ export class MapComponent implements OnChanges, OnInit {
   ngOnInit(): void {
     this.feederService.feederDeleted.subscribe((feeder: Feeder) => {
       if (feeder) {
-        this.initMarkers();
+        this.generateMarkers();
       }
     });
 
@@ -36,7 +39,7 @@ export class MapComponent implements OnChanges, OnInit {
         if (index !== -1) {
           this.feeders[index] = feeder;
         }
-        this.initMarkers();
+        this.generateMarkers();
       }
     });
 
@@ -58,7 +61,7 @@ export class MapComponent implements OnChanges, OnInit {
   ngOnChanges(): void {
     this.mapLoaded.subscribe((loaded: boolean) => {
       if (loaded) {
-        this.initMarkers();
+        this.generateMarkers();
       }
     });
   }
@@ -71,9 +74,9 @@ export class MapComponent implements OnChanges, OnInit {
     this.markers.push(marker);
   }
 
-  initMarkers() {
+  generateMarkers() {
     this.markerGroup.clearLayers();
-    if (this.feeders) {
+    if (this.feeders && (this.feeders.length > 0)) {
       this.feeders.forEach((feeder: Feeder) => {
         this.addFeederToMap(feeder);
       });
@@ -82,6 +85,10 @@ export class MapComponent implements OnChanges, OnInit {
       const group = new Leaflet.featureGroup(this.markers);
 
       this.map.fitBounds(group.getBounds());
+
+    }
+    else {
+      this.map.setView({ lat: this.DEFAULT_LATITUDE, lng: this.DEFAULT_LONGITUDE}, 16);
     }
     this.map.addLayer(this.markerGroup);
   }
@@ -94,7 +101,7 @@ export class MapComponent implements OnChanges, OnInit {
   }
 
   displayFeederEntry(longitude: number, latitude: number): void {
-    let nextId = 0;
+    let nextId = 1;
     if (this.feeders.length > 0) {
       nextId =  Math.max(...this.feeders.map(feeder => feeder.id)) + 1;
     }

@@ -66,13 +66,13 @@ export class FeederComponent implements OnInit {
               else {
                 console.error('Error during feeder modification');
                 const message = this.translateService.instant('erreur.mise-a-jour-mangeoire');
-                this.toastrService.show(message);
+                this.toastrService.error(message);
               }
             },
             (error) => {
               console.error(error);
               const message = this.translateService.instant('erreur.mise-a-jour-mangeoire');
-              this.toastrService.show(message);
+              this.toastrService.error(message);
             }
           )
         });
@@ -96,13 +96,13 @@ export class FeederComponent implements OnInit {
               else {
                 console.error('Error during feeder deletion');
                 const message = this.translateService.instant('erreur.suppression-mangeoire');
-                this.toastrService.show(message);
+                this.toastrService.error(message);
               }
             },
             (error) => {
               console.error(error);
               const message = this.translateService.instant('erreur.suppression-mangeoire');
-              this.toastrService.show(message);
+              this.toastrService.error(message);
             }
           );
         }

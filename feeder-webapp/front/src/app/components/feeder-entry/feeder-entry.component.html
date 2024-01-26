@@ -19,12 +19,16 @@
             class="form-control"
             required
             [readOnly]="!creation"
+            pattern="(^[0-9]{0,10})$"
           />
         </div>
       </div>
       <p class="text-danger ml-3"
          *ngIf="inputId.touched && inputId.getError('required')" translate>
         champ-obligatoire</p>
+      <p class="text-danger ml-3"
+         *ngIf="inputId.touched && inputId.getError('pattern')">
+        {{'erreur.format-incorrect.id' | translate}}</p>
     </div>
     <div class="row">
       <div class="col-12">

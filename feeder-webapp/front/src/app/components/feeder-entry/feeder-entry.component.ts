@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {Feeder} from '../../interfaces/feeder';
 import {Subject} from 'rxjs';
 import {BsModalRef} from 'ngx-bootstrap/modal';

@@ -44,12 +44,12 @@ export class BirdComponent implements OnInit {
           this.feederService.birdFileWasDeleted(birdFile);
         }
         else {
-          this.toastrService.show(this.translateService.instant('erreur.suppression-image'));
+          this.toastrService.error(this.translateService.instant('erreur.suppression-image'));
         }
       },
       (error) => {
         console.error(error);
-        this.toastrService.show(this.translateService.instant('erreur.suppression-image'));
+        this.toastrService.error(this.translateService.instant('erreur.suppression-image'));
       }
     );
   }

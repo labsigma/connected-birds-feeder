@@ -23,4 +23,4 @@ influxDb:
 
 configuration:
   uploadDirectory: ${UPLOAD_DIRECTORY:}
-
+  title: ${TITLE_APPLICATION:Le Lab Sigma - Mangeoires connectées}

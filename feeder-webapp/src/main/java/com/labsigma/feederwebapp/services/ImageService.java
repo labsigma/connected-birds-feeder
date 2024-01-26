@@ -13,11 +13,11 @@ import java.util.Base64;
 @Service
 @RequiredArgsConstructor
 public class ImageService {
-    private final ConfigurationProperties configurationProperties;
+    private final ConfigurationService configurationService;
 
     public Image getImage(String idFeeder, String imageName) throws IOException {
         // Get the image path
-        String imagePath = configurationProperties.getUploadDirectory() + "/" + idFeeder + "/" + imageName;
+        String imagePath = configurationService.getUploadDirectory() + "/" + idFeeder + "/" + imageName;
         Image image = new Image();
 
         File file = new File(imagePath);
@@ -30,7 +30,7 @@ public class ImageService {
     }
 
     public Boolean deleteImage(String idFeeder, String imageName) {
-        String imagePath = configurationProperties.getUploadDirectory() + "/" + idFeeder + "/" + imageName;
+        String imagePath = configurationService.getUploadDirectory() + "/" + idFeeder + "/" + imageName;
         File file = new File(imagePath);
         if (file.exists()) {
             return file.delete();
