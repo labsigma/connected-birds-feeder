@@ -62,6 +62,27 @@ services:
       - "5432:5432"
     volumes:
       - "pgdata:/var/lib/postgresql/data"      
+      
+  feeder-webapp:
+    build: ./feeder-webapp
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+      - db
+    volumes:
+      - ia-recognition:/app/uploads
+    ports:
+      - "8099:8099"
+    environment:
+      POSTGRES_URL: ${POSTGRES_URL}
+      POSTGRES_USERNAME: ${USERNAME}
+      POSTGRES_PASSWORD: ${PASSWORD}
+      INFLUXDB_ORG: ${ORG}
+      INFLUXDB_URL: ${INFLUXDB_URL}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      UPLOAD_DIRECTORY: /app/uploads
+      TITLE_APPLICATION: ${WEBAPP_TITLE}
         
 volumes:
   ia-recognition:
