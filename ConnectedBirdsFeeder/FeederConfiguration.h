@@ -1,8 +1,12 @@
-#define MEASUREMENT_INTERVAL 60 // Time ESP32 will go to sleep (in seconds)
+#define DEEP_SLEEP true
+#define SEND_TO_GED true
+#define USE_LCD true
+
+#define MEASUREMENT_INTERVAL 30 // Time ESP32 will go to sleep (in seconds)
 #define ID_FEEDER 1 // Identifier of the feeder. It must be unique for all connected feeders that send their data to the same endpoint
-#define DHT_PIN 12   // Pin on which is connected the DHT22 (temperature and humidity sensor)
+#define DHT_PIN 16   // Pin on which is connected the DHT22 (temperature and humidity sensor)
 #define DHT_TYPE DHT22   // DHT sensor type
-#define MQ135_PIN 13
+#define MQ135_PIN 0
  // Pin on which the MQ135 is connected (pollution sensor)
 
 #define INFLUXDB_URL "http://163.172.95.137:8086"
@@ -15,6 +19,11 @@
 #define IA_RECOGNITION_API "http://163.172.95.137:5001/api/pictures"
 #define IA_RECOGNITION_USERNAME "my-user"
 #define IA_RECOGNITION_PASSWORD "my-password"
+
+#define GED_API "https://recette-supplychainmobile.joinmyit.com/mobilite-mo-ws/creerfichier"
+#define GED_USERNAME "6e7b7b2f-dc66-4fb4-94cc-834572f6c55b"
+#define GED_PASSWORD "11ef5e9c-87c9-4a2a-964a-cb540243f2e4"
+
 
 // Pin definition for CAMERA_MODEL_AI_THINKER
 #define PWDN_GPIO_NUM     32
@@ -33,8 +42,8 @@
 #define VSYNC_GPIO_NUM    25
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
-#define JPEG_QUALITY      10
-#define FB_COUNT          2
 
 // PIN on whith the presence detector module is connected.
-#define PIR_PIN  GPIO_NUM_33 //  Only RTC IO can be used as a source for external wake source. They are pins: 0,2,4,12-15,25-27,32-39.
+#define PIR_PIN  GPIO_NUM_13 //  Only RTC IO can be used as a source for external wake source. They are pins: 0,2,4,12-15,25-27,32-39.
+
+#define PORT_LED_FLASH      4 

@@ -13,6 +13,7 @@ class FeederCamera {
     void initializeCamera(); 
     bool isCameraInitialized();
     void sendPicture(String base64Image);
+    void sendPictureToGed(String base64Image);
     String takePicture();
 };
 

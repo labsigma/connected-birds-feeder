@@ -35,9 +35,16 @@ FeederCamera::FeederCamera() {
   _configCamera.pin_reset = RESET_GPIO_NUM;
   _configCamera.xclk_freq_hz = 20000000;
   _configCamera.pixel_format = PIXFORMAT_JPEG;
-  _configCamera.frame_size = FRAMESIZE_UXGA; 
-  _configCamera.jpeg_quality = JPEG_QUALITY;
-  _configCamera.fb_count = FB_COUNT;
+
+  if(psramFound()){
+    _configCamera.frame_size = FRAMESIZE_UXGA; // FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
+    _configCamera.jpeg_quality = 10;
+    _configCamera.fb_count = 2;
+  } else {
+    _configCamera.frame_size = FRAMESIZE_SVGA;
+    _configCamera.jpeg_quality = 12;
+    _configCamera.fb_count = 1;
+  }
 }
 
 void FeederCamera::sendPicture(String base64Image) {
@@ -53,7 +60,46 @@ void FeederCamera::sendPicture(String base64Image) {
   StaticJsonDocument<200> doc;
 
   doc["idFeeder"] = ID_FEEDER;
-  doc["picture"] = base64Image;
+  doc["picture"] = "data:image/jpeg;base64," + base64Image;
+  
+  String requestBody;
+  serializeJson(doc, requestBody);
+  
+  Serial.println(requestBody);
+     
+  int httpResponseCode = http.POST(requestBody);
+ 
+  if(httpResponseCode > 0){
+    String response = http.getString();                       
+    Serial.println(response);
+    Serial.println(httpResponseCode);   
+  }
+  else {
+    Serial.print("Error sending statement : ");
+    Serial.println(http.errorToString(httpResponseCode).c_str());
+  }
+
+  http.end();
+}
+
+void FeederCamera::sendPictureToGed(String base64Image) {
+  Serial.println("Send picture to the GED");
+
+  HTTPClient http;   
+  http.setTimeout(HTTP_TIMEOUT);
+
+  http.begin(GED_API);  
+  http.setAuthorization(GED_USERNAME, GED_PASSWORD);
+  http.addHeader("Content-Type", "application/json");   
+
+  StaticJsonDocument<200> doc;
+
+  doc["societe"] = "TEST";
+  doc["metier"] = "";
+  doc["typedoc"] = "feeder";
+  doc["iddoc"] = String(ID_FEEDER);
+  doc["nomfichier"] = "Test.jpg";
+  doc["contenufichier"] = base64Image;
   
   String requestBody;
   serializeJson(doc, requestBody);
@@ -98,10 +144,9 @@ String FeederCamera::takePicture() {
     return "";
   }
 
-  String base64image = base64::encode(fb->buf, fb->len);
+  String base64Image = base64::encode(fb->buf, fb->len);
 
   esp_camera_fb_return(fb);
-    
-  return base64image;
-  
+
+  return base64Image;
 }

@@ -1,7 +1,5 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
-#include "soc/soc.h"
-#include "soc/rtc_cntl_reg.h"
 
 #include "FeederConfiguration.h"
 #include "TemperatureHumiditySensor.h"
@@ -10,6 +8,7 @@
 #include "FeederCamera.h"
 
 #include <InfluxDbClient.h>
+#include <LiquidCrystal_I2C.h>
 
 #define uS_TO_S_FACTOR 1000000
 
@@ -28,61 +27,116 @@ struct Statement {
   float co2;
 };
 
+RTC_DATA_ATTR int bootCount = 0;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+byte degree_symbol[8] = {0b01100, 0b10010, 0b01100, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000};
+
+
 void setup() {
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
   Serial.begin(115200);
   Serial.println("Start of setup");
 
-  bool wifiConnecte = initializeWifi();
-  temperatureHumiditySensor.initialize();
+  pinMode(GPIO_NUM_33, OUTPUT);
+  //digitalWrite(GPIO_NUM_33, LOW);
 
-  initializeClientInfluxDb();
+  pinMode(PORT_LED_FLASH, OUTPUT);
 
-  feederCamera.initializeCamera();
+   ++bootCount;
+      Serial.println("----------------------");
+      Serial.println(String(bootCount)+ "eme Boot ");  
 
-  Serial.println("End of setup");
-  
-  esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+  if (USE_LCD) {
+    // initialize LCD
+    lcd.init();
+    // turn on LCD backlight                      
+    lcd.backlight();
 
-  if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) { // Something detected by the camera
-      Serial.println("Wakeup caused by external signal using RTC_IO"); 
-      if (feederCamera.isCameraInitialized()) {
-        String image = feederCamera.takePicture();
-        if ((image != "") && wifiConnecte){
-          feederCamera.sendPicture(image); 
+    lcd.createChar(0, degree_symbol);
+  }
+
+  if (DEEP_SLEEP) {
+    esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+
+    if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) { // Something detected by the camera
+        Serial.println("Wakeup caused by external signal using RTC_IO"); 
+        digitalWrite(GPIO_NUM_33, HIGH);
+        printMessage("Bird detected");
+        feederCamera.initializeCamera();
+        
+        if (feederCamera.isCameraInitialized()) {
+          String image = feederCamera.takePicture();
+          bool wifiConnecte = initializeWifi();
+          if ((image != "") && wifiConnecte){
+            if (SEND_TO_GED) {
+              feederCamera.sendPictureToGed(image);
+            }
+            else {
+              feederCamera.sendPicture(image); 
+            }
+          }
         }
-      }
-  }
-  else if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) { // Retreive and send measurements periodically
-      Serial.println("Wakeup caused by timer");
-      Statement statement = retreiveMeasurements();
-      if (wifiConnecte) {
-        sendStatement(statement);
-      }
-  }
+        delay(2000);
+    }
+    else if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) { // Retreive and send measurements periodically
+        Serial.println("Wakeup caused by timer");
+        digitalWrite(PORT_LED_FLASH, HIGH);
+        
+        temperatureHumiditySensor.initialize();
+        initializeClientInfluxDb();
+        
+        Statement statement = retreiveMeasurements();
+        printStatement(statement);
+        bool wifiConnecte = initializeWifi();
+        if (wifiConnecte) {
+          sendStatement(statement);
+        }
+        delay(500);
+        digitalWrite(PORT_LED_FLASH, LOW);
+    }
 
-  esp_sleep_enable_ext0_wakeup(PIR_PIN, 0);
-  esp_sleep_enable_timer_wakeup(MEASUREMENT_INTERVAL * uS_TO_S_FACTOR);
-  Serial.println("Setup ESP32 to sleep for every " + String(MEASUREMENT_INTERVAL) +
-  " Seconds");
+    esp_sleep_enable_ext0_wakeup(PIR_PIN, HIGH);
+    esp_sleep_enable_timer_wakeup(MEASUREMENT_INTERVAL * uS_TO_S_FACTOR);
+    Serial.println("Setup ESP32 to sleep for every " + String(MEASUREMENT_INTERVAL) + " Seconds");
 
-  Serial.println("Going to sleep now");
-  Serial.flush(); 
-  esp_deep_sleep_start();
-  Serial.println("This will never be printed");
-  
+    Serial.println("Going to sleep now");
+    Serial.println("----------------------"); 
+    esp_deep_sleep_start();
+  }
+  else {
+    initializeWifi();
+    temperatureHumiditySensor.initialize();
+
+    initializeClientInfluxDb();
+
+    feederCamera.initializeCamera();
+  }
 }
 
 void loop() {
-  // Nothing is execute in the loop function because of the deep sleep mode
-  Serial.println("Normally never printed !!!");
+  // DEBUG
+  delay(10000);
+  bool wifiConnecte = false;
+
+  if(wifiMulti.run() == WL_CONNECTED) {
+    wifiConnecte = true;
+  }
+  
+  digitalWrite(PORT_LED_FLASH, HIGH);
+  if (feederCamera.isCameraInitialized()) {
+    String image = feederCamera.takePicture();
+    digitalWrite(PORT_LED_FLASH, LOW);
+    if ((image != "") && wifiConnecte){
+      feederCamera.sendPictureToGed(image); 
+    }
+  }
+  delay(60000);
 }
 
 bool initializeWifi() {
   Serial.println("WiFi initialization");
   bool wifiConnecte = false; 
 
-  for (int i; i < NB_WIFI_ENDPOINTS; i++) {
+  for (int i = 0; i < NB_WIFI_ENDPOINTS; i++) {
     wifiMulti.addAP(wifi_endpoints[i].ssid, wifi_endpoints[i].cle);
   }
 
@@ -96,7 +150,6 @@ bool initializeWifi() {
       wifiConnecte = true;
   }
 
-  
   return wifiConnecte;
 }
 
@@ -164,6 +217,31 @@ void sendStatement(Statement statement) {
     Serial.println(client.getLastErrorMessage());
   }
   
+}
+
+void printStatement(Statement statement) {
+  if (USE_LCD) {
+    lcd.clear();
+
+    lcd.setCursor(0, 0);
+    lcd.print("T : ");
+    lcd.print(statement.temperature);
+    lcd.write(byte(0)); // print the degree symbol
+    lcd.print("C");
+
+    lcd.setCursor(0, 1);
+    lcd.print("H : ");
+    lcd.print(statement.humidity);
+    lcd.print("%");
+  }
+}
+
+void printMessage(String message) {
+  if (USE_LCD) {
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(message);
+  }
 }
 
 
