@@ -1,12 +1,11 @@
 #define DEEP_SLEEP true
 #define SEND_TO_GED true
-#define USE_LCD true
 
 #define MEASUREMENT_INTERVAL 30 // Time ESP32 will go to sleep (in seconds)
 #define ID_FEEDER 1 // Identifier of the feeder. It must be unique for all connected feeders that send their data to the same endpoint
-#define DHT_PIN 16   // Pin on which is connected the DHT22 (temperature and humidity sensor)
+#define DHT_PIN 12   // Pin on which is connected the DHT22 (temperature and humidity sensor)
 #define DHT_TYPE DHT22   // DHT sensor type
-#define MQ135_PIN 0
+#define MQ135_PIN 2
  // Pin on which the MQ135 is connected (pollution sensor)
 
 #define INFLUXDB_URL "http://163.172.95.137:8086"

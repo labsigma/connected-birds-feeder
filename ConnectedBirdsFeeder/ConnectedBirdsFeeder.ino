@@ -6,9 +6,9 @@
 #include "GazSensor.h"
 #include "WifiConfiguration.h"
 #include "FeederCamera.h"
+#include "esp_sleep.h"
 
 #include <InfluxDbClient.h>
-#include <LiquidCrystal_I2C.h>
 
 #define uS_TO_S_FACTOR 1000000
 
@@ -25,19 +25,15 @@ struct Statement {
   float temperature;
   float humidity;
   float co2;
+  bool isTemperatureCorrect;
+  bool isCo2Correct;
 };
 
 RTC_DATA_ATTR int bootCount = 0;
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-byte degree_symbol[8] = {0b01100, 0b10010, 0b01100, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000};
-
 
 void setup() {
   Serial.begin(115200);
   Serial.println("Start of setup");
-
-  pinMode(GPIO_NUM_33, OUTPUT);
-  //digitalWrite(GPIO_NUM_33, LOW);
 
   pinMode(PORT_LED_FLASH, OUTPUT);
 
@@ -45,13 +41,9 @@ void setup() {
       Serial.println("----------------------");
       Serial.println(String(bootCount)+ "eme Boot ");  
 
-  if (USE_LCD) {
-    // initialize LCD
-    lcd.init();
-    // turn on LCD backlight                      
-    lcd.backlight();
-
-    lcd.createChar(0, degree_symbol);
+  // Get measurements if it's the first boot
+  if (bootCount == 1) {
+    manageMeasurements();
   }
 
   if (DEEP_SLEEP) {
@@ -59,14 +51,14 @@ void setup() {
 
     if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) { // Something detected by the camera
         Serial.println("Wakeup caused by external signal using RTC_IO"); 
-        digitalWrite(GPIO_NUM_33, HIGH);
-        printMessage("Bird detected");
+        digitalWrite(PORT_LED_FLASH, HIGH);
         feederCamera.initializeCamera();
         
         if (feederCamera.isCameraInitialized()) {
           String image = feederCamera.takePicture();
-          bool wifiConnecte = initializeWifi();
-          if ((image != "") && wifiConnecte){
+          digitalWrite(PORT_LED_FLASH, LOW);
+          bool wifiConnected = initializeWifi();
+          if ((image != "") && wifiConnected){
             if (SEND_TO_GED) {
               feederCamera.sendPictureToGed(image);
             }
@@ -75,23 +67,13 @@ void setup() {
             }
           }
         }
-        delay(2000);
+        else {
+          digitalWrite(PORT_LED_FLASH, LOW);
+        }
     }
     else if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) { // Retreive and send measurements periodically
         Serial.println("Wakeup caused by timer");
-        digitalWrite(PORT_LED_FLASH, HIGH);
-        
-        temperatureHumiditySensor.initialize();
-        initializeClientInfluxDb();
-        
-        Statement statement = retreiveMeasurements();
-        printStatement(statement);
-        bool wifiConnecte = initializeWifi();
-        if (wifiConnecte) {
-          sendStatement(statement);
-        }
-        delay(500);
-        digitalWrite(PORT_LED_FLASH, LOW);
+        manageMeasurements();
     }
 
     esp_sleep_enable_ext0_wakeup(PIR_PIN, HIGH);
@@ -103,38 +85,60 @@ void setup() {
     esp_deep_sleep_start();
   }
   else {
-    initializeWifi();
-    temperatureHumiditySensor.initialize();
-
-    initializeClientInfluxDb();
-
+    bool wifiConnected = initializeWifi();
+    if (wifiConnected) {
+      initializeClientInfluxDb();
+    }
     feederCamera.initializeCamera();
+    temperatureHumiditySensor.initialize();
   }
+}
+
+void manageMeasurements() {
+  digitalWrite(PORT_LED_FLASH, HIGH);
+        
+  temperatureHumiditySensor.initialize();
+  
+  Statement statement = retreiveMeasurements();
+  if (statement.isTemperatureCorrect) {
+    bool wifiConnected = initializeWifi();
+    if (wifiConnected) {
+      initializeClientInfluxDb();
+      sendStatement(statement);
+    }
+  }
+  digitalWrite(PORT_LED_FLASH, LOW);
 }
 
 void loop() {
   // DEBUG
-  delay(10000);
-  bool wifiConnecte = false;
+  bool wifiConnected = false;
 
   if(wifiMulti.run() == WL_CONNECTED) {
-    wifiConnecte = true;
+    wifiConnected = true;
   }
   
   digitalWrite(PORT_LED_FLASH, HIGH);
+  Statement statement = retreiveMeasurements();
+  if (wifiConnected) {
+    sendStatement(statement);
+  }
+  /*
   if (feederCamera.isCameraInitialized()) {
     String image = feederCamera.takePicture();
     digitalWrite(PORT_LED_FLASH, LOW);
-    if ((image != "") && wifiConnecte){
+    if ((image != "") && wifiConnected){
       feederCamera.sendPictureToGed(image); 
     }
   }
-  delay(60000);
+  */
+  digitalWrite(PORT_LED_FLASH, LOW);
+  delay(30000);
 }
 
 bool initializeWifi() {
   Serial.println("WiFi initialization");
-  bool wifiConnecte = false; 
+  bool wifiConnected = false; 
 
   for (int i = 0; i < NB_WIFI_ENDPOINTS; i++) {
     wifiMulti.addAP(wifi_endpoints[i].ssid, wifi_endpoints[i].cle);
@@ -147,14 +151,15 @@ bool initializeWifi() {
       Serial.println("IP address: ");
       Serial.println(WiFi.localIP());
       Serial.println("");
-      wifiConnecte = true;
+      wifiConnected = true;
   }
 
-  return wifiConnecte;
+  return wifiConnected;
 }
 
 void initializeClientInfluxDb() {
 
+  Serial.print("Client influxDb initialization");
   sensor.addTag("sensor_id", "IDFEEDER_" + String(ID_FEEDER));
 
   // Check server connection
@@ -171,6 +176,9 @@ Statement retreiveMeasurements() {
   Serial.println("Retrieval of measurements");
   Statement statement;
 
+  statement.isTemperatureCorrect = true;
+  statement.isCo2Correct = true;
+
   Serial.println("Temperature and humidity recovery");
   if (temperatureHumiditySensor.isInitialized()) {
     statement.humidity = temperatureHumiditySensor.retreiveHumidity();
@@ -180,6 +188,7 @@ Statement retreiveMeasurements() {
   // We test that the datas retrieved are corrects
   if (isnan(statement.humidity) || isnan(statement.temperature) ) {
     Serial.println("Unable to recover from temperature and humidity sensor !");
+    statement.isTemperatureCorrect = false;
   }
   else {
     Serial.print("Humidity: ");
@@ -192,10 +201,16 @@ Statement retreiveMeasurements() {
   Serial.println("CO2 concentration recovery");
   statement.co2 = gazSensor.retreiveCO2Concentration(statement.temperature, statement.humidity);
 
-  Serial.print("CO2 Concentration : ");
-  Serial.print(statement.co2);
-  Serial.println(" ppm");
-
+  if (isnan(statement.co2)) {
+    Serial.println("Unable to recover from co2 sensor !");
+    statement.isCo2Correct = false;
+    statement.co2 = 0;
+  }
+  else {
+    Serial.print("CO2 Concentration : ");
+    Serial.print(statement.co2);
+    Serial.println(" ppm");
+  }
   return statement;
 }
 
@@ -218,32 +233,6 @@ void sendStatement(Statement statement) {
   }
   
 }
-
-void printStatement(Statement statement) {
-  if (USE_LCD) {
-    lcd.clear();
-
-    lcd.setCursor(0, 0);
-    lcd.print("T : ");
-    lcd.print(statement.temperature);
-    lcd.write(byte(0)); // print the degree symbol
-    lcd.print("C");
-
-    lcd.setCursor(0, 1);
-    lcd.print("H : ");
-    lcd.print(statement.humidity);
-    lcd.print("%");
-  }
-}
-
-void printMessage(String message) {
-  if (USE_LCD) {
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print(message);
-  }
-}
-
 
 
 
