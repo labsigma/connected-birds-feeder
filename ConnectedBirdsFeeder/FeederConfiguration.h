@@ -1,27 +1,26 @@
-#define DEEP_SLEEP true
 #define SEND_TO_GED true
 
 #define MEASUREMENT_INTERVAL 30 // Time ESP32 will go to sleep (in seconds)
 #define ID_FEEDER 1 // Identifier of the feeder. It must be unique for all connected feeders that send their data to the same endpoint
-#define DHT_PIN 12   // Pin on which is connected the DHT22 (temperature and humidity sensor)
+#define DHT_PIN 2   // Pin on which is connected the DHT22 (temperature and humidity sensor)
 #define DHT_TYPE DHT22   // DHT sensor type
-#define MQ135_PIN 2
+#define MQ135_PIN 12
  // Pin on which the MQ135 is connected (pollution sensor)
 
-#define INFLUXDB_URL "http://163.172.95.137:8086"
+#define INFLUXDB_URL "http://dav.rabouin.es:8086"
 #define INFLUXDB_TOKEN "my-super-secret-auth-token"
 #define INFLUXDB_ORG "lelieumultiple"
 #define INFLUXDB_BUCKET "birdy"
 
 #define HTTP_TIMEOUT 30000
 
-#define IA_RECOGNITION_API "http://163.172.95.137:5001/api/pictures"
+#define IA_RECOGNITION_API "http://dav.rabouin.es:5001/api/pictures"
 #define IA_RECOGNITION_USERNAME "my-user"
 #define IA_RECOGNITION_PASSWORD "my-password"
 
 #define GED_API "https://recette-supplychainmobile.joinmyit.com/mobilite-mo-ws/creerfichier"
 #define GED_USERNAME "6e7b7b2f-dc66-4fb4-94cc-834572f6c55b"
-#define GED_PASSWORD "11ef5e9c-87c9-4a2a-964a-cb540243f2e4"
+#define GED_PASSWORD "[A renseigner]"
 
 
 // Pin definition for CAMERA_MODEL_AI_THINKER
@@ -44,5 +43,3 @@
 
 // PIN on whith the presence detector module is connected.
 #define PIR_PIN  GPIO_NUM_13 //  Only RTC IO can be used as a source for external wake source. They are pins: 0,2,4,12-15,25-27,32-39.
-
-#define PORT_LED_FLASH      4 

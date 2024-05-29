@@ -6,6 +6,6 @@ struct WIFI_CONFIGURATION {
 const int NB_WIFI_ENDPOINTS = 1; 
 
 static WIFI_CONFIGURATION wifi_endpoints[NB_WIFI_ENDPOINTS] = {
-  {"AndroidAP", "zxrq6318"}
+  {"lelieumultiple", "[A renseigner]"}
 };
 

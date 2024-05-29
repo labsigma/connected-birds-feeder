@@ -12,8 +12,8 @@
 
 #define uS_TO_S_FACTOR 1000000
 
-TemperatureHumiditySensor temperatureHumiditySensor;
-GazSensor gazSensor;
+TemperatureHumiditySensor temperatureHumiditySensor(DHT_PIN, DHT_TYPE);
+GazSensor gazSensor(MQ135_PIN);
 
 InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN);
 Point sensor("airSensors");
@@ -35,28 +35,23 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Start of setup");
 
-  pinMode(PORT_LED_FLASH, OUTPUT);
-
    ++bootCount;
       Serial.println("----------------------");
       Serial.println(String(bootCount)+ "eme Boot ");  
 
-  // Get measurements if it's the first boot
-  if (bootCount == 1) {
-    manageMeasurements();
-  }
+    // Get measurements if it's the first boot
+    if (bootCount == 1) {
+      manageMeasurements();
+    }
 
-  if (DEEP_SLEEP) {
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
 
     if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) { // Something detected by the camera
         Serial.println("Wakeup caused by external signal using RTC_IO"); 
-        digitalWrite(PORT_LED_FLASH, HIGH);
         feederCamera.initializeCamera();
         
         if (feederCamera.isCameraInitialized()) {
           String image = feederCamera.takePicture();
-          digitalWrite(PORT_LED_FLASH, LOW);
           bool wifiConnected = initializeWifi();
           if ((image != "") && wifiConnected){
             if (SEND_TO_GED) {
@@ -66,9 +61,6 @@ void setup() {
               feederCamera.sendPicture(image); 
             }
           }
-        }
-        else {
-          digitalWrite(PORT_LED_FLASH, LOW);
         }
     }
     else if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) { // Retreive and send measurements periodically
@@ -83,20 +75,10 @@ void setup() {
     Serial.println("Going to sleep now");
     Serial.println("----------------------"); 
     esp_deep_sleep_start();
-  }
-  else {
-    bool wifiConnected = initializeWifi();
-    if (wifiConnected) {
-      initializeClientInfluxDb();
-    }
-    feederCamera.initializeCamera();
-    temperatureHumiditySensor.initialize();
-  }
+  
 }
 
 void manageMeasurements() {
-  digitalWrite(PORT_LED_FLASH, HIGH);
-        
   temperatureHumiditySensor.initialize();
   
   Statement statement = retreiveMeasurements();
@@ -107,33 +89,9 @@ void manageMeasurements() {
       sendStatement(statement);
     }
   }
-  digitalWrite(PORT_LED_FLASH, LOW);
 }
 
 void loop() {
-  // DEBUG
-  bool wifiConnected = false;
-
-  if(wifiMulti.run() == WL_CONNECTED) {
-    wifiConnected = true;
-  }
-  
-  digitalWrite(PORT_LED_FLASH, HIGH);
-  Statement statement = retreiveMeasurements();
-  if (wifiConnected) {
-    sendStatement(statement);
-  }
-  /*
-  if (feederCamera.isCameraInitialized()) {
-    String image = feederCamera.takePicture();
-    digitalWrite(PORT_LED_FLASH, LOW);
-    if ((image != "") && wifiConnected){
-      feederCamera.sendPictureToGed(image); 
-    }
-  }
-  */
-  digitalWrite(PORT_LED_FLASH, LOW);
-  delay(30000);
 }
 
 bool initializeWifi() {
@@ -211,6 +169,7 @@ Statement retreiveMeasurements() {
     Serial.print(statement.co2);
     Serial.println(" ppm");
   }
+
   return statement;
 }
 
@@ -231,7 +190,6 @@ void sendStatement(Statement statement) {
     Serial.print("InfluxDB write failed: ");
     Serial.println(client.getLastErrorMessage());
   }
-  
 }
 
 
