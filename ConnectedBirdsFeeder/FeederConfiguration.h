@@ -42,4 +42,4 @@
 #define PCLK_GPIO_NUM     22
 
 // PIN on whith the presence detector module is connected.
-#define PIR_PIN  GPIO_NUM_13 //  Only RTC IO can be used as a source for external wake source. They are pins: 0,2,4,12-15,25-27,32-39.
+#define PIR_PIN  GPIO_NUM_14 //  Only RTC IO can be used as a source for external wake source. They are pins: 0,2,4,12-15,25-27,32-39.
