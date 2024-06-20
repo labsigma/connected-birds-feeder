@@ -2,13 +2,11 @@ package com.labsigma.feederwebapp.entities;
 
 
 import com.influxdb.annotations.Column;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.Instant;
 
-@Getter
-@Setter
+@Data
 public class SensorMeasurement {
     @Column(tag = true, name = "sensor_id")
     private String id;

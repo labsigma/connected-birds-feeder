@@ -3,3 +3,4 @@
 /ia-recognition/__pycache__
 /ia-recognition/uploads
 .mvn
+/feeder-webapp/feeders.json

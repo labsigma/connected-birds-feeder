@@ -1,13 +1,11 @@
 package com.labsigma.feederwebapp.entities;
 
 import com.influxdb.annotations.Column;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.time.Instant;
 
-@Getter
-@Setter
+@Data
 public class BirdFile {
     @Column(tag = true, name = "feeder_id")
     private String id;

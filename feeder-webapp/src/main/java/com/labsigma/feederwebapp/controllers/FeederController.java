@@ -7,6 +7,7 @@ import com.labsigma.feederwebapp.services.FeederService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -16,7 +17,7 @@ public class FeederController {
     private final FeederService feederService;
 
     @GetMapping(value = "/feeders")
-    public List<Feeder> retrieveFeeders() {
+    public List<Feeder> retrieveFeeders() throws IOException {
         return feederService.retrieveFeeders();
     }
 

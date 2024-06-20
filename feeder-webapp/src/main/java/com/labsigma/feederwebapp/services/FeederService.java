@@ -12,8 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 
@@ -82,7 +82,7 @@ public class FeederService {
         influxDBClient.close();
     }
 
-    public List<Feeder> retrieveFeeders() {
+    public List<Feeder> retrieveFeeders() throws IOException {
         List<Feeder> feeders = feederRepository.findAll();
 
         feeders.forEach(this::retrieveFeederInformation);
@@ -91,9 +91,17 @@ public class FeederService {
     }
 
     public Boolean deleteFeeder(Long id) {
-        log.info("Delete feeder with id " + id);
+        log.info("Delete feeder with id {}", id);
         try {
-            feederRepository.findById(id).ifPresent(feederRepository::delete);
+            feederRepository.findById(id).ifPresent(
+                    feeder -> {
+                        try {
+                            feederRepository.delete(feeder);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+            );
         }
         catch (Exception exception) {
             log.error(exception.getMessage());
@@ -104,10 +112,10 @@ public class FeederService {
     }
 
     public Feeder addFeeder(Feeder feederParam) throws JsonProcessingException {
-        log.info("Add Feeder : " +  objectMapper.writeValueAsString(feederParam));
+        log.info("Add Feeder : {}", objectMapper.writeValueAsString(feederParam));
         try {
             if (feederRepository.findById(feederParam.getId()).isPresent()) {
-                log.error("The feeder with id " + feederParam.getId() + " already exist") ;
+                log.error("The feeder with id {} already exist", feederParam.getId());
                 return null;
             }
             else {
@@ -117,7 +125,7 @@ public class FeederService {
                 feeder.setLongitude(feederParam.getLongitude());
                 feeder.setLatitude(feederParam.getLatitude());
 
-                feederRepository.saveAndFlush(feeder);
+                feederRepository.create(feeder);
                 retrieveFeederInformation(feeder);
                 return feeder;
             }
@@ -129,7 +137,7 @@ public class FeederService {
     }
 
     public Boolean updateFeeder(Feeder feederParam) throws JsonProcessingException {
-        log.info("Update Feeder : " +  objectMapper.writeValueAsString(feederParam));
+        log.info("Update Feeder : {}", objectMapper.writeValueAsString(feederParam));
         try {
             Feeder feeder = feederRepository.findById(feederParam.getId()).orElse(null);
             if (feeder != null) {
@@ -137,10 +145,10 @@ public class FeederService {
                 feeder.setLongitude(feederParam.getLongitude());
                 feeder.setLatitude(feederParam.getLatitude());
 
-                feederRepository.save(feeder);
+                feederRepository.modify(feeder);
             }
             else {
-                log.error("Feeder with id " + feederParam.getId() + " not found");
+                log.error("Feeder with id {} not found", feederParam.getId());
                 return false;
             }
         }
