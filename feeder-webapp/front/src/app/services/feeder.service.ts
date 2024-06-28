@@ -11,6 +11,8 @@ import {BirdFile} from '../interfaces/bird-file';
 export class FeederService {
   constructor(private httpClient: HttpClient) {}
 
+  static LOCALSTORAGE_FEEDER_KEY = "feeder";
+
   public feederDeleted = new BehaviorSubject<any>(undefined);
   public feederUpdated = new BehaviorSubject<any>(undefined);
   public birdFileDeleted = new BehaviorSubject<any>(undefined);
@@ -70,6 +72,19 @@ export class FeederService {
 
   public deleteBirdFile(birdFile: BirdFile): Observable<boolean> {
     return this.httpClient.post<boolean>('api/feeder/bird-file/delete', birdFile);
+  }
+
+  public getFeederFromLocalStorage(): any {
+    const feeder = localStorage.getItem(FeederService.LOCALSTORAGE_FEEDER_KEY);
+    if (feeder) {
+      return JSON.parse(feeder);
+    }
+
+    return undefined;
+  }
+
+  public saveFeederToLocalStorage(feeder: Feeder) {
+    localStorage.setItem(FeederService.LOCALSTORAGE_FEEDER_KEY, JSON.stringify(feeder));
   }
 
 }

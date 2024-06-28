@@ -41,7 +41,7 @@ export class FeederComponent implements OnInit {
   }
 
   gotoGallery(feeder: Feeder): void {
-    localStorage.setItem('feeder', JSON.stringify(feeder));
+    this.feederService.saveFeederToLocalStorage(feeder);
     this.router.navigate(['/gallery']).then();
   }
 

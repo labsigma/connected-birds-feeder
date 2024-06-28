@@ -19,16 +19,14 @@ export class GalleryComponent implements OnInit {
   ) {
   }
   ngOnInit(): void {
-    const feeder = localStorage.getItem('feeder');
-    if (feeder) {
-      this.feeder = JSON.parse(feeder);
-    }
+    this.feeder = this.feederService.getFeederFromLocalStorage();
 
     this.feederService.birdFileDeleted.subscribe((birdFile: BirdFile) => {
       if (this.feeder) {
         const index = this.feeder.birdFiles.findIndex(b => b === birdFile);
         if (index !== -1) {
           this.feeder.birdFiles.splice(index, 1);
+          this.feederService.saveFeederToLocalStorage(this.feeder);
         }
       }
     });
