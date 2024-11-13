@@ -1,14 +1,29 @@
-#include <WiFi.h>
-#include <WiFiMulti.h>
+#if defined(ESP8266)
+  #include <ESP8266WiFi.h>
+#elif defined(ESP32)
+  #include <WiFi.h>
+#endif
 
 #include "FeederConfiguration.h"
 #include "TemperatureHumiditySensor.h"
 #include "GazSensor.h"
-#include "WifiConfiguration.h"
 #include "FeederCamera.h"
 #include "esp_sleep.h"
+#include "Logger.h"
 
 #include <InfluxDbClient.h>
+
+#if DEBUG_MODE
+  #if defined(ESP8266)
+    #include <ESPAsyncTCP.h>
+  #elif defined(ESP32)
+    #include <AsyncTCP.h>
+  #endif
+  #include <AsyncTCP.h>
+  #include <ESPAsyncWebServer.h>
+  #include <WebSerial.h>
+  AsyncWebServer server(80);
+#endif
 
 #define uS_TO_S_FACTOR 1000000
 
@@ -17,9 +32,11 @@ GazSensor gazSensor(MQ135_PIN);
 
 InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN);
 Point sensor("airSensors");
+bool wifiConnected;
 
-WiFiMulti wifiMulti;
 FeederCamera feederCamera;
+Logger* Logger::instance = nullptr;
+Logger* logger = Logger::getInstance();
 
 struct Statement {
   float temperature;
@@ -32,12 +49,29 @@ struct Statement {
 RTC_DATA_ATTR int bootCount = 0;
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Start of setup");
+  logger->begin(115200);
+  logger->println("Start of setup");
 
-   ++bootCount;
-      Serial.println("----------------------");
-      Serial.println(String(bootCount)+ "eme Boot ");  
+  if (DEBUG_MODE) {
+    wifiConnected = initializeWifi();
+    feederCamera.initializeCamera();
+    temperatureHumiditySensor.initialize();
+    if (wifiConnected) {
+      initializeClientInfluxDb();
+      // Web server
+      server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(200, "text/plain", "You can access the WebSerial interface at http://" + WiFi.localIP().toString() + "/webserial");
+      });
+      WebSerial.begin(&server);
+      // Start the server
+      server.begin();
+      logger->activateWebSerial();
+    }
+  }
+  else {
+    ++bootCount;
+    logger->println("----------------------");
+    logger->println(String(bootCount)+ "eme Boot ");  
 
     // Get measurements if it's the first boot
     if (bootCount == 1) {
@@ -47,12 +81,12 @@ void setup() {
     esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
 
     if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) { // Something detected by the camera
-        Serial.println("Wakeup caused by external signal using RTC_IO"); 
+        logger->println("Wakeup caused by external signal using RTC_IO"); 
         feederCamera.initializeCamera();
-        
+          
         if (feederCamera.isCameraInitialized()) {
           String image = feederCamera.takePicture();
-          bool wifiConnected = initializeWifi();
+          wifiConnected = initializeWifi();
           if ((image != "") && wifiConnected){
             if (SEND_TO_GED) {
               feederCamera.sendPictureToGed(image);
@@ -64,17 +98,19 @@ void setup() {
         }
     }
     else if (wakeup_reason == ESP_SLEEP_WAKEUP_TIMER) { // Retreive and send measurements periodically
-        Serial.println("Wakeup caused by timer");
+        logger->println("Wakeup caused by timer");
         manageMeasurements();
     }
 
     esp_sleep_enable_ext0_wakeup(PIR_PIN, HIGH);
     esp_sleep_enable_timer_wakeup(MEASUREMENT_INTERVAL * uS_TO_S_FACTOR);
-    Serial.println("Setup ESP32 to sleep for every " + String(MEASUREMENT_INTERVAL) + " Seconds");
+    logger->println("Setup ESP32 to sleep for every " + String(MEASUREMENT_INTERVAL) + " Seconds");
 
-    Serial.println("Going to sleep now");
-    Serial.println("----------------------"); 
+    logger->println("Going to sleep now");
+    logger->println("----------------------"); 
     esp_deep_sleep_start();
+
+  }
   
 }
 
@@ -92,52 +128,94 @@ void manageMeasurements() {
 }
 
 void loop() {
+  // Only loop on debug mode
+
+/*  int pirState = digitalRead(PIR_PIN);  // State of PIR Module
+  if (pirState == HIGH) {
+    if (feederCamera.isCameraInitialized()) {
+      String image = feederCamera.takePicture();
+      if ((image != "") && wifiConnected){
+        if (SEND_TO_GED) {
+          feederCamera.sendPictureToGed(image);
+        }
+        else {
+          feederCamera.sendPicture(image); 
+        }
+      }
+    }
+  }
+  */
+
+  static unsigned long last_print_time = millis();
+
+  if ((unsigned long)(millis() - last_print_time) > MEASUREMENT_INTERVAL * 1000) {
+    ++bootCount;
+    logger->println("----------------------");
+    logger->println(String(bootCount)+ "eme loop ");  
+
+    logger->printf("Uptime: %lums\n", millis());
+    last_print_time = millis();
+
+    Statement statement = retreiveMeasurements();
+    if (statement.isTemperatureCorrect) {
+      if (wifiConnected) {
+        sendStatement(statement);
+      }
+    }
+  }
+
+  WebSerial.loop();
+
 }
 
 bool initializeWifi() {
-  Serial.println("WiFi initialization");
+  logger->println("WiFi initialization");
   bool wifiConnected = false; 
 
-  for (int i = 0; i < NB_WIFI_ENDPOINTS; i++) {
-    wifiMulti.addAP(wifi_endpoints[i].ssid, wifi_endpoints[i].cle);
-  }
 
-  Serial.println("WiFi connection...");
-  if(wifiMulti.run() == WL_CONNECTED) {
-      Serial.println("");
-      Serial.println("WiFi connected");
-      Serial.println("IP address: ");
-      Serial.println(WiFi.localIP());
-      Serial.println("");
-      wifiConnected = true;
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
+  if (WiFi.waitForConnectResult() != WL_CONNECTED) {
+      logger->printf("WiFi Failed!\n");
   }
-
+  else {
+    wifiConnected = true;
+    logger->print("IP Address: ");
+    logger->println(WiFi.localIP().toString());
+  }
+  
   return wifiConnected;
 }
 
 void initializeClientInfluxDb() {
 
-  Serial.print("Client influxDb initialization");
-  sensor.addTag("sensor_id", "IDFEEDER_" + String(ID_FEEDER));
+  logger->println("Client influxDb initialization");
+  try {
+    sensor.addTag("sensor_id", "IDFEEDER_" + String(ID_FEEDER));
 
-  // Check server connection
-  if (client.validateConnection()) {
-    Serial.print("Connected to InfluxDB: ");
-    Serial.println(client.getServerUrl());
-  } else {
-    Serial.print("InfluxDB connection failed: ");
-    Serial.println(client.getLastErrorMessage());
+    // Check server connection
+    if (client.validateConnection()) {
+      logger->print("Connected to InfluxDB: ");
+      logger->println(client.getServerUrl());
+    } else {
+      logger->print("InfluxDB connection failed: ");
+      logger->println(client.getLastErrorMessage());
+    }
+  }
+  catch(std::exception& e) {
+    logger->println(e.what());
   }
 }
 
 Statement retreiveMeasurements() {
-  Serial.println("Retrieval of measurements");
+  logger->println("Retrieval of measurements");
   Statement statement;
 
   statement.isTemperatureCorrect = true;
   statement.isCo2Correct = true;
 
-  Serial.println("Temperature and humidity recovery");
+  logger->println("Temperature and humidity recovery");
   if (temperatureHumiditySensor.isInitialized()) {
     statement.humidity = temperatureHumiditySensor.retreiveHumidity();
     statement.temperature = temperatureHumiditySensor.retreiveTemperature();  
@@ -145,36 +223,33 @@ Statement retreiveMeasurements() {
 
   // We test that the datas retrieved are corrects
   if (isnan(statement.humidity) || isnan(statement.temperature) ) {
-    Serial.println("Unable to recover from temperature and humidity sensor !");
+    logger->println("Unable to recover from temperature and humidity sensor !");
     statement.isTemperatureCorrect = false;
   }
   else {
-    Serial.print("Humidity: ");
-    Serial.println(statement.humidity);
-    Serial.print("Temperature: ");
-    Serial.print(statement.temperature);
-    Serial.println("°C ");
+    logger->printf("Humidity: %s\n", statement.humidity);
+    logger->printf("Temperature: %s °C\n", statement.temperature);
   }
 
-  Serial.println("CO2 concentration recovery");
-  statement.co2 = gazSensor.retreiveCO2Concentration(statement.temperature, statement.humidity);
+  if (statement.isTemperatureCorrect) {
+    logger->println("CO2 concentration recovery");
+    statement.co2 = gazSensor.retreiveCO2Concentration(statement.temperature, statement.humidity);
 
-  if (isnan(statement.co2)) {
-    Serial.println("Unable to recover from co2 sensor !");
-    statement.isCo2Correct = false;
-    statement.co2 = 0;
-  }
-  else {
-    Serial.print("CO2 Concentration : ");
-    Serial.print(statement.co2);
-    Serial.println(" ppm");
+    if (isnan(statement.co2)) {
+      logger->println("Unable to recover from co2 sensor !");
+      statement.isCo2Correct = false;
+      statement.co2 = 0;
+    }
+    else {
+      logger->printf("CO2 Concentration : %s ppm\n", statement.co2);
+    }
   }
 
   return statement;
 }
 
 void sendStatement(Statement statement) {
-  Serial.println("Sending of the statement");
+  logger->println("Sending of the statement");
 
   // Store measured value into point
   sensor.clearFields();
@@ -183,12 +258,12 @@ void sendStatement(Statement statement) {
   sensor.addField("co", statement.co2);
 
   // Print what are we exactly writing
-  Serial.print("Writing: ");
-  Serial.println(client.pointToLineProtocol(sensor));
+  logger->print("Writing: ");
+  logger->println(client.pointToLineProtocol(sensor));
   // Write point
   if (!client.writePoint(sensor)) {
-    Serial.print("InfluxDB write failed: ");
-    Serial.println(client.getLastErrorMessage());
+    logger->print("InfluxDB write failed: ");
+    logger->println(client.getLastErrorMessage());
   }
 }
 

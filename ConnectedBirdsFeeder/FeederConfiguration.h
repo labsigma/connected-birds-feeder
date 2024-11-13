@@ -1,11 +1,15 @@
-#define SEND_TO_GED true
+#define SEND_TO_GED false
+#define DEBUG_MODE true
 
-#define MEASUREMENT_INTERVAL 30 // Time ESP32 will go to sleep (in seconds)
+#define MEASUREMENT_INTERVAL 10 // Time ESP32 will go to sleep (in seconds)
 #define ID_FEEDER 1 // Identifier of the feeder. It must be unique for all connected feeders that send their data to the same endpoint
 #define DHT_PIN 2   // Pin on which is connected the DHT22 (temperature and humidity sensor)
 #define DHT_TYPE DHT22   // DHT sensor type
 #define MQ135_PIN 12
  // Pin on which the MQ135 is connected (pollution sensor)
+
+#define WIFI_SSID "lelieumultiple"
+#define WIFI_PASSWORD "Boop>^Azo4l,q|6MG_j,U\"<HH\@"
 
 #define INFLUXDB_URL "http://dav.rabouin.es:8086"
 #define INFLUXDB_TOKEN "my-super-secret-auth-token"
@@ -20,7 +24,7 @@
 
 #define GED_API "https://recette-supplychainmobile.joinmyit.com/mobilite-mo-ws/creerfichier"
 #define GED_USERNAME "6e7b7b2f-dc66-4fb4-94cc-834572f6c55b"
-#define GED_PASSWORD "[A renseigner]"
+#define GED_PASSWORD "11ef5e9c-87c9-4a2a-964a-cb540243f2e4"
 
 
 // Pin definition for CAMERA_MODEL_AI_THINKER

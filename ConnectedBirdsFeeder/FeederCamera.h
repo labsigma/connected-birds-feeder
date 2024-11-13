@@ -3,11 +3,13 @@
 
 #include "esp_camera.h"
 #include <Arduino.h>
+#include "Logger.h"
 
 class FeederCamera {
   private:
     bool _isCameraInitialized;
     camera_config_t _configCamera;
+    Logger* logger = Logger::getInstance();
   public:
     FeederCamera();
     void initializeCamera(); 

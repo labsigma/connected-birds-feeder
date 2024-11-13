@@ -9,6 +9,7 @@
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include "base64.h"
+#include "Logger.h"
 
 #include "esp_camera.h"
 
@@ -48,7 +49,7 @@ FeederCamera::FeederCamera() {
 }
 
 void FeederCamera::sendPicture(String base64Image) {
-  Serial.println("Send picture to the ia recognition api");
+  logger->println("Send picture to the ia recognition api");
 
   HTTPClient http;   
   http.setTimeout(HTTP_TIMEOUT);
@@ -65,25 +66,25 @@ void FeederCamera::sendPicture(String base64Image) {
   String requestBody;
   serializeJson(doc, requestBody);
   
-  Serial.println(requestBody);
+  logger->println(requestBody);
      
   int httpResponseCode = http.POST(requestBody);
  
   if(httpResponseCode > 0){
     String response = http.getString();                       
-    Serial.println(response);
-    Serial.println(httpResponseCode);   
+    logger->println(response);
+    logger->printf("%s\n", httpResponseCode);   
   }
   else {
-    Serial.print("Error sending statement : ");
-    Serial.println(http.errorToString(httpResponseCode).c_str());
+    logger->print("Error sending statement : ");
+    logger->println(http.errorToString(httpResponseCode).c_str());
   }
 
   http.end();
 }
 
 void FeederCamera::sendPictureToGed(String base64Image) {
-  Serial.println("Send picture to the GED");
+  logger->println("Send picture to the GED");
 
   HTTPClient http;   
   http.setTimeout(HTTP_TIMEOUT);
@@ -104,28 +105,28 @@ void FeederCamera::sendPictureToGed(String base64Image) {
   String requestBody;
   serializeJson(doc, requestBody);
   
-  Serial.println(requestBody);
+  logger->println(requestBody);
      
   int httpResponseCode = http.POST(requestBody);
  
   if(httpResponseCode > 0){
     String response = http.getString();                       
-    Serial.println(response);
-    Serial.println(httpResponseCode);   
+    logger->println(response);
+    logger->printf("%s\n", httpResponseCode);   
   }
   else {
-    Serial.print("Error sending statement : ");
-    Serial.println(http.errorToString(httpResponseCode).c_str());
+    logger->print("Error sending statement : ");
+    logger->println(http.errorToString(httpResponseCode).c_str());
   }
 
   http.end();
 }
 
 void FeederCamera::initializeCamera() {
-  Serial.println("Feeder camera initialization");
+  logger->println("Feeder camera initialization");
   esp_err_t err = esp_camera_init(&_configCamera);
   if (err != ESP_OK) {
-    Serial.println("Error while initialize camera : " +  err);
+    logger->println("Error while initialize camera : " +  err);
     return;
   }
   _isCameraInitialized = true;
@@ -136,11 +137,11 @@ bool FeederCamera::isCameraInitialized() {
 }
 
 String FeederCamera::takePicture() {
-  Serial.println("Take picture when bird detected");
+  logger->println("Take picture when bird detected");
 
   camera_fb_t *fb = esp_camera_fb_get();
   if (fb == NULL) {
-    Serial.println("Photo capture error");
+    logger->println("Photo capture error");
     return "";
   }
 

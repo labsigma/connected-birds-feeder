@@ -5,6 +5,7 @@
 #include <iostream>  
 #include <exception>
 #include <Arduino.h>  
+#include "Logger.h"
 
 TemperatureHumiditySensor::TemperatureHumiditySensor() : DHT(DHT_PIN, DHT_TYPE) {
   _isInitialized = false;
@@ -16,12 +17,12 @@ TemperatureHumiditySensor::TemperatureHumiditySensor(uint8_t pin, uint8_t type) 
 
 void TemperatureHumiditySensor::initialize() {
   try {
-    Serial.println("Temperature and humidity sensor initialization");
+    logger->println("Temperature and humidity sensor initialization");
     begin();
     _isInitialized = true;
   }
   catch(std::exception& e) {
-    Serial.println(e.what());
+    logger->println(e.what());
   }
 }
 
