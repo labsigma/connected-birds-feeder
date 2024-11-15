@@ -12,6 +12,7 @@
 #include "Logger.h"
 
 #include "esp_camera.h"
+#include "camera_pins.h"
 
 FeederCamera::FeederCamera() {
   _isCameraInitialized = false;
