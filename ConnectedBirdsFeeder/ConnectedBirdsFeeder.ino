@@ -227,10 +227,15 @@ Statement retreiveMeasurements() {
     statement.isTemperatureCorrect = false;
   }
   else {
-    logger->printf("Humidity: %s\n", statement.humidity);
-    logger->printf("Temperature: %s °C\n", statement.temperature);
+    logger->print("Humidity: ");
+    logger->print(statement.humidity);
+    logger->println("%");
+    logger->print("Temperature: ");
+    logger->print(statement.temperature);
+    logger->println("°C ");
   }
 
+  
   if (statement.isTemperatureCorrect) {
     logger->println("CO2 concentration recovery");
     statement.co2 = gazSensor.retreiveCO2Concentration(statement.temperature, statement.humidity);
@@ -241,10 +246,12 @@ Statement retreiveMeasurements() {
       statement.co2 = 0;
     }
     else {
-      logger->printf("CO2 Concentration : %s ppm\n", statement.co2);
+      logger->print("CO2 Concentration : ");
+      logger->print(statement.co2);
+      logger->println(" ppm");
     }
   }
-
+  
   return statement;
 }
 

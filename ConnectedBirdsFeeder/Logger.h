@@ -24,29 +24,29 @@ public:
       _isWebSerialActivated = true;
     }
 
-    // Méthode pour initialiser la communication série
+    // Method to initialize serial communication
     void begin(long baudRate) {
         Serial.begin(baudRate);
     }
 
-    // Méthode pour imprimer un message sans retour à la ligne
-    void print(const String &message) {
+    // Method to print a message without newlines
+    size_t print(const String &message) {
         Serial.print(message);
         if (_isWebSerialActivated) {
           WebSerial.print(message);
         }
     }
 
-    // Méthode pour imprimer un message avec retour à la ligne
-    void println(const String &message) {
+    // Method to print a message with line break
+    size_t println(const String &message) {
         Serial.println(message);
         if (_isWebSerialActivated) {
           WebSerial.println(message);
         }
     }
 
-    // Méthode pour imprimer un message formaté (comme printf)
-    void printf(const char *format, ...) {
+    // Method to print a formatted message (like printf)
+    size_t printf(const char *format, ...) {
         char buffer[128];
         va_list args;
         va_start(args, format);
@@ -56,6 +56,14 @@ public:
         if (_isWebSerialActivated) {
           WebSerial.println(buffer);
         }
+    }
+
+    // Method to print float
+    size_t print(const float &number) {
+      Serial.print(number);
+      if (_isWebSerialActivated) {
+        WebSerial.println(number);
+      }
     }
 };
 

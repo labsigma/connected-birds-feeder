@@ -3,9 +3,9 @@
 
 #define MEASUREMENT_INTERVAL 10 // Time ESP32 will go to sleep (in seconds)
 #define ID_FEEDER 1 // Identifier of the feeder. It must be unique for all connected feeders that send their data to the same endpoint
-#define DHT_PIN 2   // Pin on which is connected the DHT22 (temperature and humidity sensor)
+#define DHT_PIN 21   // Pin on which is connected the DHT22 (temperature and humidity sensor)
 #define DHT_TYPE DHT22   // DHT sensor type
-#define MQ135_PIN 12 // Pin on which the MQ135 is connected (pollution sensor)
+#define MQ135_PIN 47 // Pin on which the MQ135 is connected (pollution sensor)
 
 // PIN on whith the presence detector module is connected.
 #define PIR_PIN  GPIO_NUM_14 //  Only RTC IO can be used as a source for external wake source. They are pins: 0,2,4,12-15,25-27,32-39.
